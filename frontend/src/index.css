@@ -45,8 +45,16 @@
 
 /* Base styles */
 @layer base {
+    html {
+        @apply bg-slate-50 text-slate-900;
+    }
+
+    html.dark {
+        @apply bg-gray-900 text-slate-100;
+    }
+
     body {
-        @apply font-sans antialiased;
+        @apply font-sans antialiased bg-slate-50 text-slate-900 dark:bg-gray-900 dark:text-slate-100;
     }
 
     h1, h2, h3, h4, h5, h6 {
@@ -62,6 +70,20 @@
     /* Prevent text size adjustment on mobile */
     html {
         -webkit-text-size-adjust: 100%;
+    }
+}
+
+@layer utilities {
+    .custom-scrollbar {
+        scrollbar-color: rgb(110 231 183) transparent;
+    }
+
+    .dark .custom-scrollbar::-webkit-scrollbar-track {
+        @apply bg-gray-800;
+    }
+
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: rgb(16 185 129);
     }
 }
 

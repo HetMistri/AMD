@@ -6,6 +6,8 @@ from django.contrib.auth import get_user_model
 from django.db.models import Count, Sum, Avg, Q
 from django.utils import timezone
 from datetime import timedelta
+import io
+import logging
 from .models import Meter, MeterReading, Alert, Notification
 from .serializers import (
     UserSerializer, UserRegistrationSerializer, MeterSerializer,
@@ -394,3 +396,81 @@ class DashboardViewSet(viewsets.ViewSet):
         
         serializer = DashboardStatsSerializer(stats)
         return Response(serializer.data)
+
+
+# Text-to-Speech API
+from rest_framework.views import APIView
+from django.http import FileResponse
+from .tts_service import generate_speech, get_supported_languages
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class TextToSpeechAPIView(APIView):
+    """API endpoint for generating speech audio from text"""
+    
+    permission_classes = [AllowAny]  # Allow unauthenticated access for voice feature
+    
+    def post(self, request):
+        """
+        Generate speech audio from text
+        
+        Request body:
+        {
+            "text": "Your electricity bill is 1500 rupees",
+            "language": "en"  # Language code: en, hi, gu, ta, te, kn, ml, mr, pa, bn, or, as, ur, sa
+        }
+        
+        Response:
+        - Returns audio/mpeg file with the speech audio
+        """
+        text = request.data.get('text', '').strip()
+        language = request.data.get('language', 'en').lower()
+        
+        # Validate input
+        if not text:
+            return Response(
+                {'error': 'Text is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if len(text) > 5000:
+            return Response(
+                {'error': 'Text is too long (max 5000 characters)'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Generate speech
+            audio_data = generate_speech(text, language)
+            
+            if not audio_data:
+                return Response(
+                    {'error': 'Failed to generate speech'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+            
+            # Return audio file
+            return FileResponse(
+                io.BytesIO(audio_data),
+                content_type='audio/mpeg',
+                as_attachment=False,
+                filename=f'speech_{language}.mp3'
+            )
+            
+        except Exception as e:
+            logger.error(f"TTS API error: {str(e)}", exc_info=True)
+            return Response(
+                {'error': 'Internal server error'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def get(self, request):
+        """Get list of supported languages"""
+        languages = get_supported_languages()
+        return Response({
+            'supported_languages': languages,
+            'count': len(languages)
+        })
+

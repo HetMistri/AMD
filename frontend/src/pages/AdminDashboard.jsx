@@ -1,7 +1,7 @@
 // Admin Dashboard - Village Grid Live Monitor + Distribution Hierarchy
 // Interactive Map with colored dots + Distribution section below
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import { 
@@ -10,11 +10,12 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import mqtt from 'mqtt';
+import { ADMIN_CONFIG } from '../constants/config';
 import 'leaflet/dist/leaflet.css';
 
 // MQTT Configuration
-const MQTT_BROKER = 'wss://broker.hivemq.com:8884/mqtt';
-const MQTT_TOPIC = 'gram-meter/village/map';
+const MQTT_BROKER = ADMIN_CONFIG.MQTT_BROKER;
+const MQTT_TOPIC = ADMIN_CONFIG.MQTT_TOPIC;
 
 // ==================== HELPER FUNCTIONS ====================
 
@@ -162,7 +163,7 @@ function DistributionSection({ distributionData }) {
   const districts = distributionData?.districts || [];
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-gray-700">
       {/* Header */}
       <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-5">
         <div className="flex items-center gap-3">
@@ -177,10 +178,10 @@ function DistributionSection({ distributionData }) {
       </div>
 
       {/* 4-Column Hierarchy */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-gray-200">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-gray-200 dark:divide-gray-700">
         {/* Districts Column */}
         <div className="p-4">
-          <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+          <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
             <MapPin className="w-4 h-4 text-emerald-500" />
             Districts ({districts.length})
           </h3>
@@ -196,11 +197,11 @@ function DistributionSection({ distributionData }) {
                 className={`p-3 rounded-lg cursor-pointer transition-all ${
                   selectedDistrict?.id === district.id 
                     ? 'bg-emerald-100 border-2 border-emerald-500' 
-                    : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
+                    : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border-2 border-transparent'
                 }`}
               >
-                <p className="font-medium text-gray-800">{district.name}</p>
-                <p className="text-xs text-gray-500">
+                <p className="font-medium text-gray-800 dark:text-gray-100">{district.name}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   {district.village_count || district.villages?.length || 0} villages • {district.active_alerts || 0} alerts
                 </p>
               </div>
@@ -213,7 +214,7 @@ function DistributionSection({ distributionData }) {
 
         {/* Villages Column */}
         <div className="p-4">
-          <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+          <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
             <Home className="w-4 h-4 text-teal-500" />
             Villages {selectedDistrict ? `(${selectedDistrict.villages?.length || 0})` : ''}
           </h3>
@@ -228,11 +229,11 @@ function DistributionSection({ distributionData }) {
                 className={`p-3 rounded-lg cursor-pointer transition-all ${
                   selectedVillage?.id === village.id 
                     ? 'bg-teal-100 border-2 border-teal-500' 
-                    : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
+                    : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border-2 border-transparent'
                 }`}
               >
-                <p className="font-medium text-gray-800">{village.name}</p>
-                <p className="text-xs text-gray-500">
+                <p className="font-medium text-gray-800 dark:text-gray-100">{village.name}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   {village.transformer_count || village.transformers?.length || 0} transformers • {village.house_count || 0} houses
                 </p>
               </div>
@@ -248,7 +249,7 @@ function DistributionSection({ distributionData }) {
 
         {/* Transformers Column */}
         <div className="p-4">
-          <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+          <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
             <Zap className="w-4 h-4 text-yellow-500" />
             Transformers {selectedVillage ? `(${selectedVillage.transformers?.length || 0})` : ''}
           </h3>
@@ -260,10 +261,10 @@ function DistributionSection({ distributionData }) {
                 className={`p-3 rounded-lg cursor-pointer transition-all ${
                   selectedTransformer?.id === transformer.id 
                     ? 'bg-yellow-100 border-2 border-yellow-500' 
-                    : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
+                    : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border-2 border-transparent'
                 }`}
               >
-                <p className="font-medium text-gray-800 text-sm">{transformer.transformer_id}</p>
+                <p className="font-medium text-gray-800 dark:text-gray-100 text-sm">{transformer.transformer_id}</p>
                 <div className="flex items-center gap-2 mt-1">
                   <span className={`px-2 py-0.5 rounded text-xs ${
                     transformer.status === 'active' ? 'bg-green-100 text-green-700' :
@@ -272,7 +273,7 @@ function DistributionSection({ distributionData }) {
                   }`}>
                     {transformer.status || 'active'}
                   </span>
-                  <span className="text-xs text-gray-500">{transformer.house_count || transformer.houses?.length || 0} houses</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{transformer.house_count || transformer.houses?.length || 0} houses</span>
                 </div>
               </div>
             ))}
@@ -287,7 +288,7 @@ function DistributionSection({ distributionData }) {
 
         {/* Houses Column */}
         <div className="p-4">
-          <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+          <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
             <Users className="w-4 h-4 text-emerald-500" />
             Houses {selectedTransformer ? `(${selectedTransformer.houses?.length || 0})` : ''}
           </h3>
@@ -295,12 +296,12 @@ function DistributionSection({ distributionData }) {
             {selectedTransformer?.houses?.map(house => (
               <div
                 key={house.id}
-                className="p-3 rounded-lg bg-gray-50 border-2 border-transparent hover:bg-emerald-50"
+                className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700 border-2 border-transparent hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
               >
-                <p className="font-medium text-gray-800 text-sm">{house.consumer_name}</p>
-                <p className="text-xs text-gray-500 font-mono">{house.consumer_id}</p>
+                <p className="font-medium text-gray-800 dark:text-gray-100 text-sm">{house.consumer_name}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">{house.consumer_id}</p>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs text-gray-600">
+                  <span className="text-xs text-gray-600 dark:text-gray-300">
                     {house.latest_voltage?.toFixed(1) || '—'}V
                   </span>
                   <span className={`w-2 h-2 rounded-full ${
@@ -348,7 +349,7 @@ export default function AdminDashboard() {
       if (!auth.isAuthenticated) {
         navigate('/admin');
       }
-    } catch (e) {
+    } catch {
       navigate('/admin');
     }
   }, [navigate]);
@@ -357,7 +358,7 @@ export default function AdminDashboard() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8000/api/v1/distribution/dashboard/');
+      const response = await fetch(`${ADMIN_CONFIG.API_BASE_URL}/distribution/dashboard/`);
       
       if (response.ok) {
         const data = await response.json();
@@ -485,7 +486,7 @@ export default function AdminDashboard() {
           const data = JSON.parse(message.toString());
           if (Array.isArray(data) && data.length > 0) {
             // Update houses with live MQTT data
-            const updatedHouses = data.map((h, i) => ({
+            const updatedHouses = data.map((h) => ({
               house_id: h.house_id,
               name: h.name,
               voltage: h.voltage || 0,
@@ -554,21 +555,21 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 shadow-sm">
+      <header className="bg-white dark:bg-gray-800 border-b border-slate-200 dark:border-gray-700 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-emerald-100 rounded-lg">
               <Shield className="w-6 h-6 text-emerald-600" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900">Admin Dashboard</h1>
-              <p className="text-slate-600 text-sm">Electricity Distribution Monitoring</p>
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white">Admin Dashboard</h1>
+              <p className="text-slate-600 dark:text-gray-400 text-sm">Electricity Distribution Monitoring</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-slate-600 text-sm">Updated: {formatTime(lastUpdated)}</span>
+            <span className="text-slate-600 dark:text-gray-400 text-sm">Updated: {formatTime(lastUpdated)}</span>
             <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors">
               <LogOut className="w-4 h-4" /> Logout
             </button>
@@ -580,7 +581,7 @@ export default function AdminDashboard() {
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         
         {/* Village Grid Live Monitor */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-gray-700">
           <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -609,7 +610,7 @@ export default function AdminDashboard() {
           {/* Map */}
           <div style={{ height: '480px' }}>
             {loading ? (
-              <div className="h-full flex items-center justify-center bg-gray-100">
+              <div className="h-full flex items-center justify-center bg-gray-100 dark:bg-gray-700">
                 <RefreshCw className="w-8 h-8 text-emerald-600 animate-spin" />
               </div>
             ) : (
@@ -618,19 +619,19 @@ export default function AdminDashboard() {
           </div>
 
           {/* Legend */}
-          <div className="bg-gray-50 border-t px-6 py-3 flex flex-wrap justify-center gap-6">
-            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-green-500"></div><span className="text-sm text-gray-600">Optimal (190-245V)</span></div>
-            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-orange-500"></div><span className="text-sm text-gray-600">Brownout (&lt;190V)</span></div>
-            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-yellow-500"></div><span className="text-sm text-gray-600">High (245-260V)</span></div>
-            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-red-500"></div><span className="text-sm text-gray-600">Surge (&gt;260V)</span></div>
-            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-black"></div><span className="text-sm text-gray-600">Outage (0V)</span></div>
+          <div className="bg-gray-50 dark:bg-gray-700 border-t border-slate-200 dark:border-gray-600 px-6 py-3 flex flex-wrap justify-center gap-6">
+            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-green-500"></div><span className="text-sm text-gray-600 dark:text-gray-300">Optimal (190-245V)</span></div>
+            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-orange-500"></div><span className="text-sm text-gray-600 dark:text-gray-300">Brownout (&lt;190V)</span></div>
+            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-yellow-500"></div><span className="text-sm text-gray-600 dark:text-gray-300">High (245-260V)</span></div>
+            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-red-500"></div><span className="text-sm text-gray-600 dark:text-gray-300">Surge (&gt;260V)</span></div>
+            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-black"></div><span className="text-sm text-gray-600 dark:text-gray-300">Outage (0V)</span></div>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-4 lg:grid-cols-8 gap-3 p-4 bg-white border-t">
-            <div className="text-center p-2 bg-gray-50 rounded-lg">
-              <p className="text-xl font-bold text-gray-900">{summary.total_houses}</p>
-              <p className="text-xs text-gray-500">Total</p>
+          <div className="grid grid-cols-4 lg:grid-cols-8 gap-3 p-4 bg-white dark:bg-gray-800 border-t border-slate-200 dark:border-gray-700">
+            <div className="text-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <p className="text-xl font-bold text-gray-900 dark:text-white">{summary.total_houses}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
             </div>
             <div className="text-center p-2 bg-green-50 rounded-lg">
               <p className="text-xl font-bold text-green-600">{summary.normal}</p>
@@ -648,9 +649,9 @@ export default function AdminDashboard() {
               <p className="text-xl font-bold text-red-500">{summary.surge}</p>
               <p className="text-xs text-red-500">Surge</p>
             </div>
-            <div className="text-center p-2 bg-gray-100 rounded-lg">
+            <div className="text-center p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
               <p className="text-xl font-bold text-gray-800">{summary.outage}</p>
-              <p className="text-xs text-gray-600">Outage</p>
+              <p className="text-xs text-gray-600 dark:text-gray-300">Outage</p>
             </div>
             <div className="text-center p-2 bg-blue-50 rounded-lg">
               <p className="text-xl font-bold text-blue-600">{summary.avg_voltage}V</p>

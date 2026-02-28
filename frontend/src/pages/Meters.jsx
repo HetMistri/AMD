@@ -36,6 +36,7 @@ import {
 } from 'recharts';
 import api from '../services/api';
 import { useMultiMeterData } from '../hooks/useRealtimeData';
+import { useLanguage } from '../contexts/LanguageContext';
 
 // Data Generation Functions
 // Generate realistic 24-hour power consumption data
@@ -122,7 +123,7 @@ const generateDailyEnergyData = (displayMeters) => {
 };
 
 // Status badge component
-const StatusBadge = ({ status }) => {
+const StatusBadge = ({ status, t }) => {
   const statusConfig = {
     active: { bg: 'bg-green-100', text: 'text-green-700', icon: CheckCircle },
     inactive: { bg: 'bg-gray-100', text: 'text-gray-600', icon: Power },
@@ -132,17 +133,23 @@ const StatusBadge = ({ status }) => {
   
   const config = statusConfig[status] || statusConfig.inactive;
   const Icon = config.icon;
+  const statusLabel = {
+    active: t('statusActive'),
+    inactive: t('statusInactive'),
+    alert: t('statusAlert'),
+    offline: t('statusOffline')
+  }[status] || t('statusUnknown');
   
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
       <Icon className="w-3 h-3" />
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {statusLabel}
     </span>
   );
 };
 
 // Meter Card Component
-const MeterCard = ({ meter, onSelect, isSelected }) => {
+const MeterCard = ({ meter, onSelect, isSelected, t }) => {
   const getEfficiencyColor = (efficiency) => {
     if (efficiency >= 80) return 'text-green-500';
     if (efficiency >= 60) return 'text-yellow-500';
@@ -152,44 +159,44 @@ const MeterCard = ({ meter, onSelect, isSelected }) => {
   return (
     <div 
       onClick={() => onSelect(meter)}
-      className={`bg-white rounded-xl p-5 shadow-sm border-2 transition-all cursor-pointer hover:shadow-md
-        ${isSelected ? 'border-emerald-500' : 'border-transparent hover:border-slate-200'}`}
+      className={`bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border-2 transition-all cursor-pointer hover:shadow-md
+        ${isSelected ? 'border-emerald-500' : 'border-transparent hover:border-slate-200 dark:hover:border-gray-700'}`}
     >
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h3 className="font-semibold text-slate-900">{meter.name || `Meter ${meter.meter_id}`}</h3>
-          <p className="text-sm text-slate-600 flex items-center gap-1 mt-1">
+          <h3 className="font-semibold text-slate-900 dark:text-white">{meter.name || `Meter ${meter.meter_id}`}</h3>
+          <p className="text-sm text-slate-600 dark:text-gray-400 flex items-center gap-1 mt-1">
             <MapPin className="w-3 h-3" />
-            {meter.location || meter.village || 'Unknown Location'}
+            {meter.location || meter.village || t('unknownLocation')}
           </p>
         </div>
-        <StatusBadge status={meter.status || 'active'} />
+        <StatusBadge status={meter.status || 'active'} t={t} />
       </div>
       
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <p className="text-xs text-slate-600">Current Power</p>
-          <p className="text-lg font-bold text-slate-900">
-            {meter.power?.toFixed(1) || '0'} <span className="text-sm font-normal">W</span>
+          <p className="text-xs text-slate-600 dark:text-gray-400">{t('currentPowerLabel')}</p>
+          <p className="text-lg font-bold text-slate-900 dark:text-white">
+            {((meter.power || 0) / 1000).toFixed(2)} <span className="text-sm font-normal">kW</span>
           </p>
         </div>
         <div>
-          <p className="text-xs text-slate-600">Today's Usage</p>
-          <p className="text-lg font-bold text-slate-900">
+          <p className="text-xs text-slate-600 dark:text-gray-400">{t('todaysUsageLabel')}</p>
+          <p className="text-lg font-bold text-slate-900 dark:text-white">
             {meter.energy_today?.toFixed(2) || '0'} <span className="text-sm font-normal">kWh</span>
           </p>
         </div>
       </div>
       
-      <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+      <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-gray-700">
         <div className="flex items-center gap-2">
           <Gauge className="w-4 h-4 text-gray-400" />
           <span className={`text-sm font-medium ${getEfficiencyColor(meter.efficiency || 0)}`}>
-            {meter.efficiency?.toFixed(0) || '0'}% efficiency
+            {meter.efficiency?.toFixed(0) || '0'}% {t('efficiencyLabel')}
           </span>
         </div>
-        <span className="text-xs text-gray-400">
-          {meter.last_reading_at ? new Date(meter.last_reading_at).toLocaleTimeString() : 'No data'}
+        <span className="text-xs text-gray-400 dark:text-gray-500">
+          {meter.last_reading_at ? new Date(meter.last_reading_at).toLocaleTimeString() : t('noDataText')}
         </span>
       </div>
     </div>
@@ -197,13 +204,13 @@ const MeterCard = ({ meter, onSelect, isSelected }) => {
 };
 
 // Live Meter Detail Component
-const MeterDetail = ({ meter, readings }) => {
+const MeterDetail = ({ meter, readings, t }) => {
   if (!meter) {
     return (
-      <div className="bg-white rounded-xl p-8 shadow-sm text-center border border-slate-200">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm text-center border border-slate-200 dark:border-gray-700">
         <Gauge className="w-16 h-16 mx-auto text-slate-300 mb-4" />
-        <h3 className="text-lg font-medium text-slate-700">Select a Meter</h3>
-        <p className="text-slate-500 mt-2">Click on a meter card to view detailed readings and analytics</p>
+        <h3 className="text-lg font-medium text-slate-700 dark:text-gray-300">{t('selectMeterText')}</h3>
+        <p className="text-slate-500 dark:text-gray-400 mt-2">{t('selectMeterHelperText')}</p>
       </div>
     );
   }
@@ -211,41 +218,41 @@ const MeterDetail = ({ meter, readings }) => {
   const latestReading = readings?.[0] || {};
   
   const liveMetrics = [
-    { label: 'Voltage', value: latestReading.voltage?.toFixed(1) || meter.voltage?.toFixed(1) || '0', unit: 'V', icon: Zap, color: 'text-yellow-500' },
-    { label: 'Current', value: latestReading.current?.toFixed(2) || meter.current?.toFixed(2) || '0', unit: 'A', icon: Activity, color: 'text-blue-500' },
-    { label: 'Power', value: latestReading.power?.toFixed(1) || meter.power?.toFixed(1) || '0', unit: 'W', icon: Power, color: 'text-green-500' },
-    { label: 'Energy', value: latestReading.energy?.toFixed(2) || meter.energy?.toFixed(2) || '0', unit: 'kWh', icon: BarChart3, color: 'text-purple-500' },
-    { label: 'Power Factor', value: latestReading.power_factor?.toFixed(2) || meter.power_factor?.toFixed(2) || '0', unit: '', icon: TrendingUp, color: 'text-orange-500' },
-    { label: 'Frequency', value: latestReading.frequency?.toFixed(1) || meter.frequency?.toFixed(1) || '50', unit: 'Hz', icon: Clock, color: 'text-cyan-500' },
+    { label: t('voltageLabel'), value: latestReading.voltage?.toFixed(1) || meter.voltage?.toFixed(1) || '0', unit: 'V', icon: Zap, color: 'text-yellow-500' },
+    { label: t('currentLabel'), value: latestReading.current?.toFixed(2) || meter.current?.toFixed(2) || '0', unit: 'A', icon: Activity, color: 'text-blue-500' },
+    { label: t('powerLabel'), value: (((latestReading.power ?? meter.power) || 0) / 1000).toFixed(2), unit: 'kW', icon: Power, color: 'text-green-500' },
+    { label: t('energyLabel'), value: latestReading.energy?.toFixed(2) || meter.energy?.toFixed(2) || '0', unit: 'kWh', icon: BarChart3, color: 'text-purple-500' },
+    { label: t('powerFactorLabel'), value: latestReading.power_factor?.toFixed(2) || meter.power_factor?.toFixed(2) || '0', unit: '', icon: TrendingUp, color: 'text-orange-500' },
+    { label: t('frequencyLabel'), value: latestReading.frequency?.toFixed(1) || meter.frequency?.toFixed(1) || '50', unit: 'Hz', icon: Clock, color: 'text-cyan-500' },
   ];
 
   return (
     <div className="space-y-6">
       {/* Live Readings Header */}
-      <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-slate-200 dark:border-gray-700">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h3 className="text-xl font-bold text-slate-900">{meter.name || `Meter ${meter.meter_id}`}</h3>
-            <p className="text-sm text-slate-600">Live Readings</p>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">{meter.name || `Meter ${meter.meter_id}`}</h3>
+            <p className="text-sm text-slate-600 dark:text-gray-400">{t('liveReadingsLabel')}</p>
           </div>
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-1 text-sm text-green-500">
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-              Live
+              {t('liveText')}
             </span>
           </div>
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {liveMetrics.map((metric) => (
-            <div key={metric.label} className="bg-slate-50 rounded-lg p-4">
+            <div key={metric.label} className="bg-slate-50 dark:bg-gray-700 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <metric.icon className={`w-4 h-4 ${metric.color}`} />
-                <span className="text-xs text-slate-500">{metric.label}</span>
+                <span className="text-xs text-slate-500 dark:text-gray-400">{metric.label}</span>
               </div>
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">
                 {metric.value}
-                <span className="text-sm font-normal text-slate-500 ml-1">{metric.unit}</span>
+                <span className="text-sm font-normal text-slate-500 dark:text-gray-400 ml-1">{metric.unit}</span>
               </p>
             </div>
           ))}
@@ -253,8 +260,8 @@ const MeterDetail = ({ meter, readings }) => {
       </div>
 
       {/* Power Consumption Chart */}
-      <div className="bg-white rounded-xl p-5 shadow-sm">
-        <h4 className="text-lg font-semibold text-slate-900 mb-4">Power Consumption (Last 24 Hours)</h4>
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-slate-200 dark:border-gray-700">
+        <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">{t('powerConsumptionChart')}</h4>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={generatePowerConsumptionData(readings)}>
@@ -296,8 +303,8 @@ const MeterDetail = ({ meter, readings }) => {
       </div>
 
       {/* Voltage & Current Chart */}
-      <div className="bg-white rounded-xl p-5 shadow-sm">
-        <h4 className="text-lg font-semibold text-slate-900 mb-4">Voltage & Current Trends (24 Hours)</h4>
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-slate-200 dark:border-gray-700">
+        <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">{t('voltageCurrentTrendsChart')}</h4>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={generateVoltageCurrentData(readings)}>
@@ -362,6 +369,7 @@ const MeterDetail = ({ meter, readings }) => {
 
 // Main Meters Page
 const Meters = () => {
+  const { t } = useLanguage();
   const [meters, setMeters] = useState([]);
   const [selectedMeter, setSelectedMeter] = useState(null);
   const [readings, setReadings] = useState([]);
@@ -489,28 +497,28 @@ const Meters = () => {
   // Calculate summary stats from meters
   const summaryStats = [
     { 
-      label: 'Total Meters', 
+      label: t('totalMetersLabel'), 
       value: stats?.total_meters || displayMeters.length, 
       icon: Gauge, 
       color: 'bg-emerald-500',
       trend: null
     },
     { 
-      label: 'Active', 
+      label: t('activeLabel'), 
       value: stats?.active_meters || displayMeters.filter(m => m.status === 'active').length, 
       icon: CheckCircle, 
       color: 'bg-green-500',
       trend: 'up'
     },
     { 
-      label: 'Offline', 
+      label: t('offlineLabel'), 
       value: stats?.offline_meters || displayMeters.filter(m => m.status === 'offline').length, 
       icon: WifiOff, 
       color: 'bg-yellow-500',
       trend: null
     },
     { 
-      label: 'With Alerts', 
+      label: t('withAlertsLabel'), 
       value: stats?.meters_with_alerts || displayMeters.filter(m => m.status === 'alert').length, 
       icon: AlertTriangle, 
       color: 'bg-red-500',
@@ -520,23 +528,23 @@ const Meters = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <RefreshCw className="w-12 h-12 mx-auto text-emerald-500 animate-spin mb-4" />
-          <p className="text-slate-600">Loading meters...</p>
+          <p className="text-slate-600 dark:text-gray-400">{t('loadingMeters')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white p-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Smart Meters</h1>
-            <p className="text-slate-600">Monitor and manage all connected meters</p>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('smartMetersTitle')}</h1>
+            <p className="text-slate-600 dark:text-gray-400">{t('smartMetersSubtitle')}</p>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -547,14 +555,14 @@ const Meters = () => {
                   : 'bg-gray-100 text-gray-600'}`}
             >
               <Activity className="w-4 h-4" />
-              Auto-refresh {autoRefresh ? 'ON' : 'OFF'}
+              {t('autoRefreshText')} {autoRefresh ? t('onText') : t('offText')}
             </button>
             <button 
               onClick={handleRefresh}
               className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
-              Refresh
+              {t('refresh')}
             </button>
           </div>
         </div>
@@ -562,11 +570,11 @@ const Meters = () => {
         {/* Summary Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {summaryStats.map((stat) => (
-            <div key={stat.label} className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
+            <div key={stat.label} className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-slate-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-slate-600">{stat.label}</p>
-                  <p className="text-3xl font-bold text-slate-900 mt-1">{stat.value}</p>
+                  <p className="text-sm text-slate-600 dark:text-gray-400">{stat.label}</p>
+                  <p className="text-3xl font-bold text-slate-900 dark:text-white mt-1">{stat.value}</p>
                 </div>
                 <div className={`p-3 ${stat.color} rounded-xl`}>
                   <stat.icon className="w-6 h-6 text-white" />
@@ -575,7 +583,7 @@ const Meters = () => {
               {stat.trend && (
                 <div className={`flex items-center gap-1 mt-2 text-sm ${stat.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
                   {stat.trend === 'up' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                  <span>vs last week</span>
+                  <span>{t('vsLastWeek')}</span>
                 </div>
               )}
             </div>
@@ -592,20 +600,20 @@ const Meters = () => {
           {/* Meters List */}
           <div className="lg:col-span-1 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900">All Meters</h2>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">{t('allMeters')}</h2>
               <div className="flex items-center gap-2">
                 <span className="flex items-center gap-1 text-sm text-emerald-500">
                   <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                  Live
+                  {t('liveText')}
                 </span>
-                <span className="text-sm text-slate-500">{displayMeters.length} total</span>
+                <span className="text-sm text-slate-500 dark:text-gray-400">{displayMeters.length} {t('totalText')}</span>
               </div>
             </div>
             
             {displayMeters.length === 0 ? (
-              <div className="bg-white rounded-xl p-8 shadow-sm text-center">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm text-center">
                 <Gauge className="w-12 h-12 mx-auto text-slate-300 mb-4" />
-                <p className="text-slate-500">No meters found</p>
+                <p className="text-slate-500 dark:text-gray-400">{t('noMetersFound')}</p>
               </div>
             ) : (
               <div className="space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto pr-2">
@@ -615,6 +623,7 @@ const Meters = () => {
                     meter={meter} 
                     onSelect={handleMeterSelect}
                     isSelected={selectedMeter?.id === meter.id || selectedMeter?.meter_id === meter.meter_id}
+                    t={t}
                   />
                 ))}
               </div>
@@ -624,19 +633,19 @@ const Meters = () => {
           {/* Meter Detail */}
           <div className="lg:col-span-2">
             {readingsLoading ? (
-              <div className="bg-white rounded-xl p-8 shadow-sm text-center">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm text-center">
                 <RefreshCw className="w-12 h-12 mx-auto text-emerald-500 animate-spin mb-4" />
-                <p className="text-slate-600">Loading meter data...</p>
+                <p className="text-slate-600 dark:text-gray-400">{t('loadingMeterData')}</p>
               </div>
             ) : (
-              <MeterDetail meter={selectedMeter} readings={readings} />
+              <MeterDetail meter={selectedMeter} readings={readings} t={t} />
             )}
           </div>
         </div>
 
         {/* Daily Usage Comparison Chart */}
-        <div className="bg-white rounded-xl p-5 shadow-sm mt-6">
-          <h4 className="text-lg font-semibold text-slate-900 mb-4">Daily Energy Comparison (All Meters)</h4>
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm mt-6 border border-slate-200 dark:border-gray-700">
+          <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">{t('dailyEnergyComparisonChart')}</h4>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={generateDailyEnergyData(displayMeters)}>
@@ -664,7 +673,7 @@ const Meters = () => {
                         <div>{`${value.toFixed(2)} kWh`}</div>
                         {location && <div className="text-xs text-slate-500 mt-1">{location}</div>}
                       </div>,
-                      "Today's Energy"
+                      t('todaysEnergyTooltip')
                     ];
                   }}
                 />
@@ -672,7 +681,7 @@ const Meters = () => {
                   dataKey="energy_today" 
                   fill="#10b981" 
                   radius={[8, 8, 0, 0]}
-                  name="Today's Energy (kWh)"
+                  name={t('todaysEnergyChartLabel')}
                 >
                   {generateDailyEnergyData(displayMeters).map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.status === 'active' ? '#10b981' : '#94a3b8'} />

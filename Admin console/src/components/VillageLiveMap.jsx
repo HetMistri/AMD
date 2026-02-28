@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
 import L from 'leaflet'
+import { APP_CONFIG } from '../config'
 
 // API Configuration
-const API_BASE_URL = 'http://localhost:8000/api/v1'
+const API_BASE_URL = APP_CONFIG.API_BASE_URL
 
 // Helper: deterministic pseudo-random from string
 function seededRandom(str){

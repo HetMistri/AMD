@@ -41,9 +41,10 @@ import {
 } from 'recharts';
 import api from '../services/api';
 import { useBillingData } from '../hooks/useRealtimeData';
+import { useLanguage } from '../contexts/LanguageContext';
 
 // Status badge
-const PaymentStatus = ({ status }) => {
+const PaymentStatus = ({ status, t }) => {
   const config = {
     paid: { bg: 'bg-emerald-100', text: 'text-emerald-700', icon: CheckCircle },
     pending: { bg: 'bg-yellow-100', text: 'text-yellow-700', icon: Clock },
@@ -56,7 +57,7 @@ const PaymentStatus = ({ status }) => {
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${c.bg} ${c.text}`}>
       <Icon className="w-3 h-3" />
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {t(status)}
     </span>
   );
 };
@@ -72,31 +73,31 @@ const formatCurrency = (amount) => {
 };
 
 // Bill Card Component
-const BillCard = ({ bill, onView }) => {
+const BillCard = ({ bill, onView, t }) => {
   const dueDate = new Date(bill.due_date);
   const isOverdue = bill.status !== 'paid' && dueDate < new Date();
   
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow border border-slate-200">
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow border border-slate-200 dark:border-gray-700">
       <div className="flex items-start justify-between mb-4">
         <div>
-          <p className="text-sm text-slate-500">Bill #{bill.bill_number || bill.id}</p>
-          <h4 className="font-semibold text-slate-900 mt-1">{bill.month || bill.billing_period}</h4>
+          <p className="text-sm text-slate-500">{t('bills')} #{bill.bill_number || bill.id}</p>
+          <h4 className="font-semibold text-slate-900 dark:text-white mt-1">{bill.month || bill.billing_period}</h4>
         </div>
-        <PaymentStatus status={isOverdue ? 'overdue' : bill.status} />
+        <PaymentStatus status={isOverdue ? 'overdue' : bill.status} t={t} />
       </div>
       
       <div className="space-y-3">
         <div className="flex justify-between">
-          <span className="text-sm text-slate-500">Units Consumed</span>
-          <span className="font-medium text-slate-900">{bill.units_consumed || bill.energy_consumed} kWh</span>
+          <span className="text-sm text-slate-500">{t('unitsConsumed')}</span>
+          <span className="font-medium text-slate-900 dark:text-white">{bill.units_consumed || bill.energy_consumed} kWh</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-sm text-slate-500">Amount</span>
-          <span className="font-bold text-xl text-slate-900">{formatCurrency(bill.amount || bill.total_amount)}</span>
+          <span className="text-sm text-slate-500">{t('amountLabel')}</span>
+          <span className="font-bold text-xl text-slate-900 dark:text-white">{formatCurrency(bill.amount || bill.total_amount)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-sm text-slate-500">Due Date</span>
+          <span className="text-sm text-slate-500">{t('dueDate')}</span>
           <span className={`text-sm font-medium ${isOverdue ? 'text-red-500' : 'text-slate-700'}`}>
             {dueDate.toLocaleDateString('en-IN')}
           </span>
@@ -109,13 +110,13 @@ const BillCard = ({ bill, onView }) => {
           className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors text-sm font-medium"
         >
           <Eye className="w-4 h-4" />
-          View
+          {t('view')}
         </button>
         <button
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-slate-50 text-slate-600 rounded-lg hover:bg-slate-100 transition-colors text-sm font-medium"
+          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-slate-50 dark:bg-gray-700 text-slate-600 dark:text-gray-300 rounded-lg hover:bg-slate-100 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
         >
           <Download className="w-4 h-4" />
-          Download
+          {t('download')}
         </button>
       </div>
     </div>
@@ -123,11 +124,11 @@ const BillCard = ({ bill, onView }) => {
 };
 
 // Invoice Row Component
-const InvoiceRow = ({ invoice, expanded, onToggle }) => {
+const InvoiceRow = ({ invoice, expanded, onToggle, t }) => {
   return (
     <div className="border border-slate-200 rounded-lg overflow-hidden">
       <div 
-        className="flex items-center justify-between p-4 bg-white cursor-pointer hover:bg-slate-50"
+        className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 cursor-pointer hover:bg-slate-50 dark:hover:bg-gray-700"
         onClick={onToggle}
       >
         <div className="flex items-center gap-4">
@@ -135,45 +136,45 @@ const InvoiceRow = ({ invoice, expanded, onToggle }) => {
             <FileText className="w-5 h-5 text-emerald-600" />
           </div>
           <div>
-            <p className="font-medium text-slate-900">Invoice #{invoice.invoice_number || invoice.id}</p>
+            <p className="font-medium text-slate-900 dark:text-white">{t('invoices')} #{invoice.invoice_number || invoice.id}</p>
             <p className="text-sm text-slate-500">{new Date(invoice.date || invoice.created_at).toLocaleDateString('en-IN')}</p>
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <span className="font-bold text-slate-900">{formatCurrency(invoice.amount || invoice.total)}</span>
-          <PaymentStatus status={invoice.status || 'pending'} />
+          <span className="font-bold text-slate-900 dark:text-white">{formatCurrency(invoice.amount || invoice.total)}</span>
+          <PaymentStatus status={invoice.status || 'pending'} t={t} />
           <ChevronRight className={`w-5 h-5 text-slate-400 transition-transform ${expanded ? 'rotate-90' : ''}`} />
         </div>
       </div>
       
       {expanded && (
-        <div className="p-4 bg-slate-50 border-t border-slate-200">
+        <div className="p-4 bg-slate-50 dark:bg-gray-700 border-t border-slate-200 dark:border-gray-600">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p className="text-xs text-slate-500">Meter ID</p>
-              <p className="font-medium text-slate-900">{invoice.meter_id || 'N/A'}</p>
+              <p className="text-xs text-slate-500">{t('meterId')}</p>
+              <p className="font-medium text-slate-900 dark:text-white">{invoice.meter_id || 'N/A'}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Billing Period</p>
-              <p className="font-medium text-slate-900">{invoice.billing_period || 'N/A'}</p>
+              <p className="text-xs text-slate-500">{t('billingPeriod')}</p>
+              <p className="font-medium text-slate-900 dark:text-white">{invoice.billing_period || 'N/A'}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Units</p>
-              <p className="font-medium text-slate-900">{invoice.units || invoice.energy_consumed || 0} kWh</p>
+              <p className="text-xs text-slate-500">{t('unitsLabel')}</p>
+              <p className="font-medium text-slate-900 dark:text-white">{invoice.units || invoice.energy_consumed || 0} kWh</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Rate</p>
-              <p className="font-medium text-slate-900">{formatCurrency(invoice.rate || 5)}/kWh</p>
+              <p className="text-xs text-slate-500">{t('rate')}</p>
+              <p className="font-medium text-slate-900 dark:text-white">{formatCurrency(invoice.rate || 5)}/kWh</p>
             </div>
           </div>
           <div className="flex gap-2 mt-4">
-            <button className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">
+            <button className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-600 rounded-lg text-sm font-medium text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-700">
               <Printer className="w-4 h-4" />
-              Print
+              {t('print')}
             </button>
-            <button className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">
+            <button className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-600 rounded-lg text-sm font-medium text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-700">
               <Download className="w-4 h-4" />
-              Download PDF
+              {t('downloadPdf')}
             </button>
           </div>
         </div>
@@ -183,13 +184,13 @@ const InvoiceRow = ({ invoice, expanded, onToggle }) => {
 };
 
 // Stats Card
-const StatsCard = ({ icon: Icon, label, value, subValue, trend, color, bgColor }) => (
-  <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
+const StatsCard = ({ icon: Icon, label, value, subValue, trend, color, bgColor, t }) => (
+  <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-slate-200 dark:border-gray-700">
     <div className="flex items-center justify-between">
       <div>
-        <p className="text-sm text-slate-500">{label}</p>
-        <p className="text-2xl font-bold text-slate-900 mt-1">{value}</p>
-        {subValue && <p className="text-xs text-slate-500 mt-1">{subValue}</p>}
+        <p className="text-sm text-slate-500 dark:text-gray-400">{label}</p>
+        <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{value}</p>
+        {subValue && <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">{subValue}</p>}
       </div>
       <div className={`p-3 rounded-xl ${bgColor}`}>
         <Icon className={`w-6 h-6 ${color}`} />
@@ -198,7 +199,7 @@ const StatsCard = ({ icon: Icon, label, value, subValue, trend, color, bgColor }
     {trend !== undefined && (
       <div className={`flex items-center gap-1 mt-2 text-sm ${trend <= 0 ? 'text-green-500' : 'text-red-500'}`}>
         {trend <= 0 ? <TrendingDown className="w-4 h-4" /> : <TrendingUp className="w-4 h-4" />}
-        <span>{Math.abs(trend)}% vs last month</span>
+        <span>{t('versusLastMonth', { value: Math.abs(trend) })}</span>
       </div>
     )}
   </div>
@@ -206,6 +207,7 @@ const StatsCard = ({ icon: Icon, label, value, subValue, trend, color, bgColor }
 
 // Main Billing Page
 const Billing = () => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
   const [bills, setBills] = useState([]);
   const [invoices, setInvoices] = useState([]);
@@ -289,48 +291,48 @@ const Billing = () => {
   ].filter(d => d.value > 0);
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: BarChart3 },
-    { id: 'bills', label: 'Bills', icon: Receipt },
-    { id: 'invoices', label: 'Invoices', icon: FileText },
+    { id: 'overview', label: t('overview'), icon: BarChart3 },
+    { id: 'bills', label: t('bills'), icon: Receipt },
+    { id: 'invoices', label: t('invoices'), icon: FileText },
   ];
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <RefreshCw className="w-12 h-12 mx-auto text-emerald-500 animate-spin mb-4" />
-          <p className="text-slate-600">Loading billing data...</p>
+          <p className="text-slate-600 dark:text-gray-400">{t('loadingBillingData')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white p-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Billing & Payments</h1>
-            <p className="text-slate-500">Manage your bills, invoices and payments</p>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('billingTitle')}</h1>
+            <p className="text-slate-500">{t('billingSubtitle')}</p>
           </div>
           <div className="flex items-center gap-3">
             <select
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value)}
-              className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-700"
+              className="px-4 py-2 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg text-slate-700 dark:text-gray-300"
             >
-              <option value="1month">Last Month</option>
-              <option value="3months">Last 3 Months</option>
-              <option value="6months">Last 6 Months</option>
-              <option value="1year">Last Year</option>
+              <option value="1month">{t('lastMonth')}</option>
+              <option value="3months">{t('last3Months')}</option>
+              <option value="6months">{t('last6Months')}</option>
+              <option value="1year">{t('lastYear')}</option>
             </select>
             <button 
               onClick={fetchData}
               className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
-              Refresh
+              {t('refresh')}
             </button>
           </div>
         </div>
@@ -339,34 +341,38 @@ const Billing = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <StatsCard 
             icon={IndianRupee} 
-            label="Total Billed" 
+            label={t('totalBilled')} 
             value={formatCurrency(stats.total_amount)}
-            subValue={`${stats.bills_count} bills`}
+            subValue={t('billsCount', { count: stats.bills_count })}
             bgColor="bg-emerald-100"
             color="text-emerald-600"
+            t={t}
           />
           <StatsCard 
             icon={Clock} 
-            label="Pending Amount" 
+            label={t('pendingAmount')} 
             value={formatCurrency(stats.pending_amount)}
-            subValue={`${stats.pending_count} bills`}
+            subValue={t('billsCount', { count: stats.pending_count })}
             bgColor="bg-yellow-100"
             color="text-yellow-600"
+            t={t}
           />
           <StatsCard 
             icon={Zap} 
-            label="Total Units" 
+            label={t('totalUnits')} 
             value={`${stats.total_units?.toLocaleString() || 0} kWh`}
             trend={-5}
             bgColor="bg-emerald-100"
             color="text-emerald-600"
+            t={t}
           />
           <StatsCard 
             icon={TrendingDown} 
-            label="Avg. Rate" 
+            label={t('avgRate')} 
             value={`₹${typeof stats.average_rate === 'number' ? stats.average_rate.toFixed(2) : stats.average_rate || '5.50'}/kWh`}
             bgColor="bg-emerald-100"
             color="text-emerald-600"
+            t={t}
           />
         </div>
 
@@ -379,7 +385,7 @@ const Billing = () => {
               className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap
                 ${activeTab === tab.id 
                   ? 'bg-emerald-600 text-white' 
-                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}
+                  : 'bg-white dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-gray-700 border border-slate-200 dark:border-gray-700'}`}
             >
               <tab.icon className="w-4 h-4" />
               {tab.label}
@@ -394,40 +400,40 @@ const Billing = () => {
             <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl p-6 text-white shadow-lg">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-emerald-100 text-sm">Current Month (Live)</p>
+                  <p className="text-emerald-100 text-sm">{t('currentMonthLive')}</p>
                   <h2 className="text-3xl font-bold">{formatCurrency(currentMonthData.amount || 0)}</h2>
                 </div>
                 <div className="text-right">
                   <div className="flex items-center gap-2 text-blue-100">
                     <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                    <span className="text-sm">Live Calculation</span>
+                    <span className="text-sm">{t('liveCalculation')}</span>
                   </div>
                   <p className="text-2xl font-bold mt-1">{currentMonthData.units?.toFixed(2) || 0} kWh</p>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-blue-400/30">
                 <div>
-                  <p className="text-blue-200 text-xs">Base Amount</p>
+                  <p className="text-blue-200 text-xs">{t('baseAmount')}</p>
                   <p className="font-semibold">{formatCurrency(currentMonthData.baseAmount || 0)}</p>
                 </div>
                 <div>
-                  <p className="text-blue-200 text-xs">Fixed Charges</p>
+                  <p className="text-blue-200 text-xs">{t('fixedCharges')}</p>
                   <p className="font-semibold">{formatCurrency(currentMonthData.fixedCharges || 50)}</p>
                 </div>
                 <div>
-                  <p className="text-blue-200 text-xs">Electricity Duty (15%)</p>
+                  <p className="text-blue-200 text-xs">{t('electricityDuty')}</p>
                   <p className="font-semibold">{formatCurrency(currentMonthData.electricityDuty || 0)}</p>
                 </div>
               </div>
               <div className="mt-4 text-sm text-blue-200">
-                Due Date: {currentMonthData.dueDate ? new Date(currentMonthData.dueDate).toLocaleDateString('en-IN') : 'N/A'}
+                {t('dueDate')}: {currentMonthData.dueDate ? new Date(currentMonthData.dueDate).toLocaleDateString('en-IN') : 'N/A'}
               </div>
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Monthly Billing Chart */}
-              <div className="lg:col-span-2 bg-white rounded-xl p-5 shadow-sm border border-slate-200">
-                <h3 className="text-lg font-semibold text-slate-900 mb-4">Monthly Billing Trend</h3>
+              <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-slate-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">{t('monthlyBillingTrend')}</h3>
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={monthlyData}>
@@ -459,8 +465,8 @@ const Billing = () => {
               </div>
 
             {/* Payment Status Pie Chart */}
-            <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-900 mb-4">Payment Status</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-slate-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">{t('paymentStatus')}</h3>
               {paymentStatusData.length > 0 ? (
                 <>
                   <div className="h-52">
@@ -490,22 +496,22 @@ const Billing = () => {
                       <div key={item.name} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></span>
-                          <span className="text-sm text-slate-600">{item.name}</span>
+                          <span className="text-sm text-slate-600 dark:text-gray-400">{item.name}</span>
                         </div>
-                        <span className="font-medium text-slate-900">{item.value}</span>
+                        <span className="font-medium text-slate-900 dark:text-white">{item.value}</span>
                       </div>
                     ))}
                   </div>
                 </>
               ) : (
-                <p className="text-center text-slate-500 py-8">No payment data</p>
+                <p className="text-center text-slate-500 py-8">{t('noPaymentData')}</p>
               )}
             </div>
             </div>
 
             {/* Units vs Amount Comparison */}
-            <div className="bg-white rounded-xl p-5 shadow-sm mt-6 border border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-900 mb-4">Units vs Amount Comparison</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm mt-6 border border-slate-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">{t('unitsVsAmountComparison')}</h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={monthlyData}>
@@ -530,15 +536,15 @@ const Billing = () => {
         {activeTab === 'bills' && (
           <div>
             {displayBills.length === 0 ? (
-              <div className="bg-white rounded-xl p-8 shadow-sm text-center border border-slate-200">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm text-center border border-slate-200 dark:border-gray-700">
                 <Receipt className="w-12 h-12 mx-auto text-slate-300 mb-4" />
-                <h3 className="text-lg font-medium text-slate-700">No Bills Found</h3>
-                <p className="text-slate-500 mt-2">Your bills will appear here once generated</p>
+                <h3 className="text-lg font-medium text-slate-700">{t('noBillsFound')}</h3>
+                <p className="text-slate-500 mt-2">{t('billsAppearHere')}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {displayBills.map((bill) => (
-                  <BillCard key={bill.id} bill={bill} onView={setSelectedBill} />
+                  <BillCard key={bill.id} bill={bill} onView={setSelectedBill} t={t} />
                 ))}
               </div>
             )}
@@ -546,17 +552,17 @@ const Billing = () => {
         )}
 
         {activeTab === 'invoices' && (
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700">
             <div className="p-5 border-b border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-900">All Invoices</h3>
-              <p className="text-sm text-slate-500">{displayInvoices.length} total invoices</p>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{t('allInvoices')}</h3>
+              <p className="text-sm text-slate-500">{t('totalInvoicesCount', { count: displayInvoices.length })}</p>
             </div>
             
             {displayInvoices.length === 0 ? (
               <div className="p-8 text-center">
                 <FileText className="w-12 h-12 mx-auto text-slate-300 mb-4" />
-                <h3 className="text-lg font-medium text-slate-700">No Invoices Found</h3>
-                <p className="text-slate-500 mt-2">Your invoices will appear here once generated</p>
+                <h3 className="text-lg font-medium text-slate-700">{t('noInvoicesFound')}</h3>
+                <p className="text-slate-500 mt-2">{t('invoicesAppearHere')}</p>
               </div>
             ) : (
               <div className="divide-y divide-slate-200">
@@ -566,6 +572,7 @@ const Billing = () => {
                     invoice={invoice} 
                     expanded={expandedInvoice === invoice.id}
                     onToggle={() => setExpandedInvoice(expandedInvoice === invoice.id ? null : invoice.id)}
+                    t={t}
                   />
                 ))}
               </div>
@@ -576,13 +583,13 @@ const Billing = () => {
         {/* Bill Detail Modal */}
         {selectedBill && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-auto border border-slate-200 dark:border-gray-700">
               <div className="p-6 border-b border-slate-200">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold text-slate-900">Bill Details</h3>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('billDetails')}</h3>
                   <button 
                     onClick={() => setSelectedBill(null)}
-                    className="p-2 hover:bg-slate-100 rounded-lg"
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-gray-700 rounded-lg"
                   >
                     <ChevronDown className="w-5 h-5 text-gray-500" />
                   </button>
@@ -591,41 +598,41 @@ const Billing = () => {
               
               <div className="p-6 space-y-4">
                 <div className="flex justify-between items-center pb-4 border-b border-slate-200">
-                  <span className="text-slate-500">Bill Number</span>
-                  <span className="font-semibold text-slate-900">#{selectedBill.bill_number || selectedBill.id}</span>
+                  <span className="text-slate-500">{t('billNumber')}</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">#{selectedBill.bill_number || selectedBill.id}</span>
                 </div>
                 <div className="flex justify-between items-center pb-4 border-b border-slate-200">
-                  <span className="text-slate-500">Billing Period</span>
-                  <span className="font-semibold text-slate-900">{selectedBill.month || selectedBill.billing_period}</span>
+                  <span className="text-slate-500">{t('billingPeriod')}</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{selectedBill.month || selectedBill.billing_period}</span>
                 </div>
                 <div className="flex justify-between items-center pb-4 border-b border-slate-200">
-                  <span className="text-slate-500">Units Consumed</span>
-                  <span className="font-semibold text-slate-900">{selectedBill.units_consumed || selectedBill.energy_consumed} kWh</span>
+                  <span className="text-slate-500">{t('unitsConsumed')}</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{selectedBill.units_consumed || selectedBill.energy_consumed} kWh</span>
                 </div>
                 <div className="flex justify-between items-center pb-4 border-b border-slate-200">
-                  <span className="text-slate-500">Rate</span>
-                  <span className="font-semibold text-slate-900">{formatCurrency(selectedBill.rate || 5)}/kWh</span>
+                  <span className="text-slate-500">{t('rate')}</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{formatCurrency(selectedBill.rate || 5)}/kWh</span>
                 </div>
                 <div className="flex justify-between items-center pb-4 border-b border-slate-200">
-                  <span className="text-slate-500">Total Amount</span>
+                  <span className="text-slate-500">{t('totalAmount')}</span>
                   <span className="font-bold text-2xl text-emerald-600">{formatCurrency(selectedBill.amount || selectedBill.total_amount)}</span>
                 </div>
                 <div className="flex justify-between items-center pb-4 border-b border-slate-200">
-                  <span className="text-slate-500">Due Date</span>
-                  <span className="font-semibold text-slate-900">{new Date(selectedBill.due_date).toLocaleDateString('en-IN')}</span>
+                  <span className="text-slate-500">{t('dueDate')}</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{new Date(selectedBill.due_date).toLocaleDateString('en-IN')}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-500">Status</span>
-                  <PaymentStatus status={selectedBill.status} />
+                  <span className="text-slate-500">{t('statusLabel')}</span>
+                  <PaymentStatus status={selectedBill.status} t={t} />
                 </div>
               </div>
               
               <div className="p-6 border-t border-slate-200 flex gap-3">
                 <button className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-medium">
                   <CreditCard className="w-5 h-5" />
-                  Pay Now
+                  {t('payNow')}
                 </button>
-                <button className="flex items-center justify-center gap-2 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors">
+                <button className="flex items-center justify-center gap-2 px-4 py-3 bg-slate-100 dark:bg-gray-700 text-slate-700 dark:text-gray-300 rounded-xl hover:bg-slate-200 dark:hover:bg-gray-600 transition-colors">
                   <Download className="w-5 h-5" />
                 </button>
               </div>

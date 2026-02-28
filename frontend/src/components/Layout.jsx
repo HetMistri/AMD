@@ -16,32 +16,41 @@ import {
   Moon,
   Sun,
   Search,
-  Sparkles
+  Sparkles,
+  Globe,
+  Loader
 } from 'lucide-react';
 import authService from '../services/authService';
+import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Layout = ({ children, onLogout }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(document.documentElement.classList.contains('dark'));
+  const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { isDark, toggleTheme } = useTheme();
+  const { t, language, availableLanguages, changeLanguage, loading } = useLanguage();
   
   const user = authService.getCurrentUser();
-
-  const navItems = [
-    { path: '/dashboard', label: 'Dashboard', labelHi: 'डैशबोर्ड', icon: LayoutDashboard },
-    { path: '/meters', label: 'Meters', labelHi: 'मीटर', icon: Gauge },
-    { path: '/alerts', label: 'Alerts', labelHi: 'अलर्ट', icon: AlertTriangle },
-    { path: '/analytics', label: 'Analytics', labelHi: 'विश्लेषण', icon: BarChart3 },
-    { path: '/billing', label: 'Billing', labelHi: 'बिल', icon: Receipt },
-    { path: '/profile', label: 'Profile', labelHi: 'प्रोफ़ाइल', icon: User },
+  const selectableLanguages = [
+    { code: 'en', name: 'English', nativeName: 'English' },
+    ...availableLanguages.filter((lang) => lang.code !== 'en'),
   ];
 
-  const toggleDarkMode = () => {
-    document.documentElement.classList.toggle('dark');
-    setDarkMode(!darkMode);
-    localStorage.setItem('darkMode', !darkMode);
+  const navItems = [
+    { path: '/dashboard', label: t('navDashboard'), icon: LayoutDashboard },
+    { path: '/meters', label: t('navMeters'), icon: Gauge },
+    { path: '/alerts', label: t('navAlerts'), icon: AlertTriangle },
+    { path: '/analytics', label: t('navAnalytics'), icon: BarChart3 },
+    { path: '/billing', label: t('navBilling'), icon: Receipt },
+    { path: '/profile', label: t('navProfile'), icon: User },
+  ];
+
+  const handleLanguageChange = async (langCode) => {
+    setLanguageMenuOpen(false);
+    await changeLanguage(langCode);
   };
 
   const handleLogout = () => {
@@ -74,8 +83,8 @@ const Layout = ({ children, onLogout }) => {
                 <Gauge className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-gray-900 dark:text-white">Gram Meter</h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Smart Energy</p>
+                <h1 className="text-lg font-bold text-gray-900 dark:text-white">{t('title')}</h1>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('smartEnergy')}</p>
               </div>
             </Link>
             <button 
@@ -130,7 +139,7 @@ const Layout = ({ children, onLogout }) => {
               className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors font-medium"
             >
               <LogOut className="w-4 h-4" />
-              Sign Out
+              {t('signOut')}
             </button>
           </div>
         </div>
@@ -155,7 +164,7 @@ const Layout = ({ children, onLogout }) => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search..."
+                  placeholder={t('searchPlaceholder')}
                   className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500"
                 />
               </div>
@@ -165,15 +174,47 @@ const Layout = ({ children, onLogout }) => {
             <div className="flex items-center gap-2">
               {/* Dark Mode Toggle */}
               <button
-                onClick={toggleDarkMode}
+                onClick={toggleTheme}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               >
-                {darkMode ? (
+                {isDark ? (
                   <Sun className="w-5 h-5 text-yellow-500" />
                 ) : (
                   <Moon className="w-5 h-5 text-gray-600" />
                 )}
               </button>
+
+              <div className="relative">
+                <button
+                  onClick={() => setLanguageMenuOpen(!languageMenuOpen)}
+                  className="flex items-center gap-2 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                  disabled={loading}
+                >
+                  <Globe className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  <span className="hidden md:inline text-sm text-gray-700 dark:text-gray-300">
+                    {selectableLanguages.find(l => l.code === language)?.nativeName || 'English'}
+                  </span>
+                  {loading ? <Loader className="w-4 h-4 animate-spin text-gray-500" /> : <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${languageMenuOpen ? 'rotate-180' : ''}`} />}
+                </button>
+
+                {languageMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setLanguageMenuOpen(false)} />
+                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 py-2 z-50 max-h-96 overflow-y-auto custom-scrollbar">
+                      {selectableLanguages.map((lang) => (
+                        <button
+                          key={lang.code}
+                          onClick={() => handleLanguageChange(lang.code)}
+                          className={`w-full text-left px-4 py-2 text-sm transition-colors ${language === lang.code ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                        >
+                          <div className="font-medium">{lang.nativeName}</div>
+                          <div className="text-xs opacity-70">{lang.name}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
 
               {/* Notifications */}
               <Link 
@@ -204,7 +245,7 @@ const Layout = ({ children, onLogout }) => {
                       className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                       <User className="w-4 h-4" />
-                      Profile
+                      {t('profile')}
                     </Link>
                     <Link
                       to="/settings"
@@ -212,7 +253,7 @@ const Layout = ({ children, onLogout }) => {
                       className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                       <Settings className="w-4 h-4" />
-                      Settings
+                      {t('settings')}
                     </Link>
                     <hr className="my-2 border-gray-100 dark:border-gray-700" />
                     <button
@@ -220,7 +261,7 @@ const Layout = ({ children, onLogout }) => {
                       className="w-full flex items-center gap-2 px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                     >
                       <LogOut className="w-4 h-4" />
-                      Sign Out
+                      {t('signOut')}
                     </button>
                   </div>
                 )}

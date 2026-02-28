@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import VillageLiveMap from './components/VillageLiveMap'
+import { APP_CONFIG } from './config'
 
 // API Configuration
-const API_BASE_URL = 'http://localhost:8000/api/v1'
+const API_BASE_URL = APP_CONFIG.API_BASE_URL
 
 // Login Component
 function AdminLogin({ onLogin }) {

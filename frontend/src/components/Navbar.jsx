@@ -8,6 +8,10 @@ const Navbar = ({ isOffline, logo, onLogout }) => {
   const { language, changeLanguage, t, availableLanguages, loading } = useLanguage();
   const { isDark, toggleTheme } = useTheme();
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
+  const languageOptions = [
+    { code: 'en', name: 'English', nativeName: 'English' },
+    ...availableLanguages.filter((lang) => lang.code !== 'en'),
+  ];
 
   const handleLanguageChange = async (langCode) => {
     setLanguageMenuOpen(false);
@@ -79,7 +83,7 @@ const Navbar = ({ isOffline, logo, onLogout }) => {
             >
               <Globe size={18} />
               <span className="text-sm font-medium">
-                {availableLanguages.find(l => l.code === language)?.nativeName || 'English'}
+                {languageOptions.find(l => l.code === language)?.nativeName || 'English'}
               </span>
               {loading ? (
                 <Loader size={16} className="animate-spin" />
@@ -101,10 +105,10 @@ const Navbar = ({ isOffline, logo, onLogout }) => {
                       Select Language
                     </p>
                     <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">
-                      {availableLanguages.length} Indian Languages
+                      {languageOptions.length} Languages
                     </p>
                   </div>
-                  {availableLanguages.map(lang => (
+                  {languageOptions.map(lang => (
                     <button
                       key={lang.code}
                       onClick={() => handleLanguageChange(lang.code)}

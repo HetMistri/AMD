@@ -1,23 +1,24 @@
-import React, { Suspense, useState, useEffect } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import Dashboard from './pages/Dashboard';
-import Auth from './pages/Auth';
-import LanguageSelection from './pages/LanguageSelection';
-import Analytics from './pages/Analytics';
-import Meters from './pages/Meters';
-import Alerts from './pages/Alerts';
-import Billing from './pages/Billing';
-import Profile from './pages/Profile';
-import CompanyAdminDashboard from './pages/CompanyAdminDashboard';
-import AdminAuth from './pages/AdminAuth';
-import AdminDashboard from './pages/AdminDashboard';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorBoundary from './components/ErrorBoundary';
 import authService from './services/authService';
 import Layout from './components/Layout';
+
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Auth = lazy(() => import('./pages/Auth'));
+const LanguageSelection = lazy(() => import('./pages/LanguageSelection'));
+const Analytics = lazy(() => import('./pages/Analytics'));
+const Meters = lazy(() => import('./pages/Meters'));
+const Alerts = lazy(() => import('./pages/Alerts'));
+const Billing = lazy(() => import('./pages/Billing'));
+const Profile = lazy(() => import('./pages/Profile'));
+const CompanyAdminDashboard = lazy(() => import('./pages/CompanyAdminDashboard'));
+const AdminAuth = lazy(() => import('./pages/AdminAuth'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 
 function App() {
   // Check if user is already authenticated
@@ -43,7 +44,7 @@ function App() {
     checkAuth();
   }, []);
 
-  const handleAuthSuccess = (user) => {
+  const handleAuthSuccess = () => {
     setIsAuthenticated(true);
   };
 
@@ -61,6 +62,22 @@ function App() {
     setLanguageSelected(true);
   };
 
+  const getProtectedElement = (element) => {
+    if (!languageSelected) {
+      return <Navigate to="/language" replace />;
+    }
+
+    if (!isAuthenticated) {
+      return <Navigate to="/auth" replace />;
+    }
+
+    return (
+      <Layout onLogout={handleLogout}>
+        {element}
+      </Layout>
+    );
+  };
+
   return (
     <ErrorBoundary>
       <ThemeProvider>
@@ -68,7 +85,7 @@ function App() {
           <Router>
             <Suspense fallback={
               <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-mint-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
-                <LoadingSpinner size="large" text="Loading Gram Meter..." />
+                <LoadingSpinner size="large" text="Loading..." />
               </div>
             }>
               <Routes>
@@ -96,104 +113,13 @@ function App() {
                 />
                 
                 {/* Protected Routes with Layout */}
-                <Route 
-                  path="/dashboard" 
-                  element={
-                    !languageSelected ? (
-                      <Navigate to="/language" replace />
-                    ) : !isAuthenticated ? (
-                      <Navigate to="/auth" replace />
-                    ) : (
-                      <Layout onLogout={handleLogout}>
-                        <Dashboard />
-                      </Layout>
-                    )
-                  } 
-                />
-                <Route 
-                  path="/analytics" 
-                  element={
-                    !languageSelected ? (
-                      <Navigate to="/language" replace />
-                    ) : !isAuthenticated ? (
-                      <Navigate to="/auth" replace />
-                    ) : (
-                      <Layout onLogout={handleLogout}>
-                        <Analytics />
-                      </Layout>
-                    )
-                  } 
-                />
-                <Route 
-                  path="/meters" 
-                  element={
-                    !languageSelected ? (
-                      <Navigate to="/language" replace />
-                    ) : !isAuthenticated ? (
-                      <Navigate to="/auth" replace />
-                    ) : (
-                      <Layout onLogout={handleLogout}>
-                        <Meters />
-                      </Layout>
-                    )
-                  } 
-                />
-                <Route 
-                  path="/alerts" 
-                  element={
-                    !languageSelected ? (
-                      <Navigate to="/language" replace />
-                    ) : !isAuthenticated ? (
-                      <Navigate to="/auth" replace />
-                    ) : (
-                      <Layout onLogout={handleLogout}>
-                        <Alerts />
-                      </Layout>
-                    )
-                  } 
-                />
-                <Route 
-                  path="/billing" 
-                  element={
-                    !languageSelected ? (
-                      <Navigate to="/language" replace />
-                    ) : !isAuthenticated ? (
-                      <Navigate to="/auth" replace />
-                    ) : (
-                      <Layout onLogout={handleLogout}>
-                        <Billing />
-                      </Layout>
-                    )
-                  } 
-                />
-                <Route 
-                  path="/profile" 
-                  element={
-                    !languageSelected ? (
-                      <Navigate to="/language" replace />
-                    ) : !isAuthenticated ? (
-                      <Navigate to="/auth" replace />
-                    ) : (
-                      <Layout onLogout={handleLogout}>
-                        <Profile />
-                      </Layout>
-                    )
-                  } 
-                />
-                <Route 
-                  path="/settings" 
-                  element={
-                    !languageSelected ? (
-                      <Navigate to="/language" replace />
-                    ) : !isAuthenticated ? (
-                      <Navigate to="/auth" replace />
-                    ) : (
-                      <Layout onLogout={handleLogout}>
-                        <Profile />
-                      </Layout>
-                    )
-                  } 
-                />
+                <Route path="/dashboard" element={getProtectedElement(<Dashboard />)} />
+                <Route path="/analytics" element={getProtectedElement(<Analytics />)} />
+                <Route path="/meters" element={getProtectedElement(<Meters />)} />
+                <Route path="/alerts" element={getProtectedElement(<Alerts />)} />
+                <Route path="/billing" element={getProtectedElement(<Billing />)} />
+                <Route path="/profile" element={getProtectedElement(<Profile />)} />
+                <Route path="/settings" element={getProtectedElement(<Profile />)} />
                 <Route 
                   path="/admin/distribution" 
                   element={<CompanyAdminDashboard />}

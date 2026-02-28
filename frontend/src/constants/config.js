@@ -9,6 +9,12 @@ export const API_CONFIG = {
   RETRY_DELAY: 1000, // 1 second
 };
 
+export const ADMIN_CONFIG = {
+  API_BASE_URL: import.meta.env.VITE_ADMIN_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
+  MQTT_BROKER: import.meta.env.VITE_MQTT_BROKER || 'wss://broker.hivemq.com:8884/mqtt',
+  MQTT_TOPIC: import.meta.env.VITE_MQTT_TOPIC || 'gram-meter/village/map',
+};
+
 // Cache Configuration
 export const CACHE_CONFIG = {
   METER_DATA_KEY: 'gram_meter_data',

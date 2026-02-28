@@ -4,24 +4,23 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 const LanguageSelection = ({ onLanguageSelected }) => {
-  const { language, changeLanguage, availableLanguages } = useLanguage();
+  const { language, changeLanguage, availableLanguages, loading, translationProgress } = useLanguage();
   const { isDark } = useTheme();
   const [selectedLang, setSelectedLang] = useState(language);
-  const [loading, setLoading] = useState(false);
 
   const handleLanguageSelect = async (langCode) => {
     setSelectedLang(langCode);
   };
 
   const handleContinue = async () => {
-    setLoading(true);
     await changeLanguage(selectedLang);
-    setTimeout(() => {
-      if (onLanguageSelected) {
-        onLanguageSelected();
-      }
-    }, 500);
+    if (onLanguageSelected) {
+      onLanguageSelected();
+    }
   };
+
+  const selectedLanguageDetails = availableLanguages.find((lang) => lang.code === selectedLang);
+  const progressPercent = translationProgress?.language === selectedLang ? translationProgress?.percent || 0 : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-mint-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-4">
@@ -96,7 +95,7 @@ const LanguageSelection = ({ onLanguageSelected }) => {
             {loading ? (
               <>
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                Loading...
+                Translating... {progressPercent}%
               </>
             ) : (
               <>
@@ -105,6 +104,21 @@ const LanguageSelection = ({ onLanguageSelected }) => {
               </>
             )}
           </button>
+
+          {loading && (
+            <div className="mt-4">
+              <div className="flex items-center justify-between text-sm text-slate-600 dark:text-slate-400 mb-2">
+                <span>Translating to {selectedLanguageDetails?.nativeName || selectedLang}</span>
+                <span>{progressPercent}%</span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-emerald-500 to-teal-600 transition-all duration-300"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Help Text */}

@@ -2,7 +2,8 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     UserViewSet, MeterViewSet, MeterReadingViewSet,
-    AlertViewSet, NotificationViewSet, DashboardViewSet
+    AlertViewSet, NotificationViewSet, DashboardViewSet,
+    TextToSpeechAPIView
 )
 from .mobile_auth_views import (
     SignupRequestView, SignupVerifyView,
@@ -45,6 +46,9 @@ urlpatterns = [
     path('test/sms/', test_sms, name='test_sms'),
     path('test/alert/', test_alert, name='test_alert'),
     path('test/sms-status/', sms_config_status, name='sms_config_status'),
+    
+    # Text-to-Speech API
+    path('tts/', TextToSpeechAPIView.as_view(), name='text_to_speech'),
     
     # API Routes
     path('', include(router.urls)),

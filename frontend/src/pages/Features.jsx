@@ -329,9 +329,7 @@ const Features = ({ onLogout }) => {
                 </div>
               </div>
               <div className="flex gap-2">
-                <VoiceAlertButton messageKey="welcome" language="en" className="!bg-white dark:!bg-gray-800" />
-                <VoiceAlertButton messageKey="welcome" language="hi" className="!bg-white dark:!bg-gray-800" />
-                <VoiceAlertButton messageKey="welcome" language="gu" className="!bg-white dark:!bg-gray-800" />
+                <VoiceAlertButton messageKey="welcome" className="!bg-white dark:!bg-gray-800" />
               </div>
             </div>
           </div>

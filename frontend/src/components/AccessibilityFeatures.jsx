@@ -22,54 +22,94 @@ import {
   Check
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useLanguage } from '../contexts/LanguageContext';
+import { INDIAN_LANGUAGES } from '../services/translation';
 
-// Voice Alert Messages in Multiple Languages
-const VOICE_MESSAGES = {
-  en: {
-    highVoltage: 'Warning! High voltage detected at {value} volts. Please check your electrical equipment immediately.',
-    lowVoltage: 'Alert! Low voltage detected at {value} volts. Contact your electricity provider.',
-    anomaly: 'Anomaly detected in your power consumption. Please review your meter readings.',
-    billDue: 'Reminder: Your electricity bill of rupees {amount} is due in {days} days.',
-    peakHours: 'You are using electricity during peak hours. Consider switching to off-peak usage to save money.',
-    savingsTip: 'Great job! You saved {percent} percent on electricity this month compared to last month.',
-    welcome: 'Welcome to Gram Meter. Your smart energy monitoring assistant.',
-    dailyReport: 'Your daily energy report. Today you consumed {energy} kilowatt hours, costing approximately {cost} rupees.'
-  },
-  hi: {
-    highVoltage: 'चेतावनी! {value} वोल्ट पर उच्च वोल्टेज का पता चला। कृपया तुरंत अपने बिजली के उपकरण की जांच करें।',
-    lowVoltage: 'सावधान! {value} वोल्ट पर कम वोल्टेज का पता चला। अपने बिजली प्रदाता से संपर्क करें।',
-    anomaly: 'आपकी बिजली खपत में असामान्यता का पता चला है। कृपया अपने मीटर रीडिंग की समीक्षा करें।',
-    billDue: 'रिमाइंडर: आपका {amount} रुपये का बिजली बिल {days} दिनों में देय है।',
-    peakHours: 'आप पीक आवर्स के दौरान बिजली का उपयोग कर रहे हैं। पैसे बचाने के लिए ऑफ-पीक उपयोग पर स्विच करें।',
-    savingsTip: 'बहुत बढ़िया! आपने इस महीने पिछले महीने की तुलना में बिजली पर {percent} प्रतिशत बचत की।',
-    welcome: 'ग्राम मीटर में आपका स्वागत है। आपका स्मार्ट ऊर्जा निगरानी सहायक।',
-    dailyReport: 'आपकी दैनिक ऊर्जा रिपोर्ट। आज आपने {energy} किलोवाट घंटे की खपत की, जिसकी लागत लगभग {cost} रुपये है।'
-  },
-  gu: {
-    highVoltage: 'ચેતવણી! {value} વોલ્ટ પર ઉચ્ચ વોલ્ટેજ મળી. કૃપા કરીને તમારા વિદ્યુત સાધનોની તાત્કાલિક તપાસ કરો.',
-    lowVoltage: 'ચેતવણી! {value} વોલ્ટ પર ઓછું વોલ્ટેજ મળ્યું. તમારા વીજળી પ્રદાતાનો સંપર્ક કરો.',
-    anomaly: 'તમારા વીજળી વપરાશમાં વિસંગતતા મળી છે. કૃપા કરીને તમારા મીટર રીડિંગની સમીક્ષા કરો.',
-    billDue: 'રીમાઇન્ડર: તમારું {amount} રૂપિયાનું વીજળી બિલ {days} દિવસમાં બાકી છે.',
-    peakHours: 'તમે પીક અવર્સ દરમિયાન વીજળીનો ઉપયોગ કરી રહ્યા છો. પૈસા બચાવવા ઓફ-પીક ઉપયોગ પર સ્વિચ કરો.',
-    savingsTip: 'શાબાશ! તમે આ મહિને ગયા મહિનાની સરખામણીમાં વીજળી પર {percent} ટકા બચત કરી.',
-    welcome: 'ગ્રામ મીટરમાં આપનું સ્વાગત છે. તમારો સ્માર્ટ ઊર્જા મોનિટરિંગ સહાયક.',
-    dailyReport: 'તમારો દૈનિક ઊર્જા રિપોર્ટ. આજે તમે {energy} કિલોવોટ કલાકનો વપરાશ કર્યો, જેની અંદાજિત કિંમત {cost} રૂપિયા છે.'
-  }
-};
+// Voice messages are now served entirely from translation.js via VOICE_KEY_MAP keys
 
 // Languages Config
+const VOICE_LANGUAGE_FLAGS = {
+  en: '🇬🇧',
+  hi: '🇮🇳',
+  gu: '🇮🇳',
+  ta: '🇮🇳',
+  te: '🇮🇳',
+  kn: '🇮🇳',
+  ml: '🇮🇳',
+  mr: '🇮🇳',
+  pa: '🇮🇳',
+  bn: '🇮🇳',
+  or: '🇮🇳',
+  as: '🇮🇳',
+  ur: '🇮🇳',
+  sa: '🇮🇳',
+};
+
+const VOICE_LOCALE_MAP = {
+  en: 'en-IN',
+  hi: 'hi-IN',
+  gu: 'gu-IN',
+  ta: 'ta-IN',
+  te: 'te-IN',
+  kn: 'kn-IN',
+  ml: 'ml-IN',
+  mr: 'mr-IN',
+  pa: 'pa-IN',
+  bn: 'bn-IN',
+  or: 'or-IN',
+  as: 'as-IN',
+  ur: 'ur-IN',
+  sa: 'sa-IN',
+};
+
 const LANGUAGES = [
-  { code: 'en', name: 'English', flag: '🇬🇧', voice: 'en-IN' },
-  { code: 'hi', name: 'हिंदी', flag: '🇮🇳', voice: 'hi-IN' },
-  { code: 'gu', name: 'ગુજરાતી', flag: '🇮🇳', voice: 'gu-IN' }
+  // English - Always available
+  {
+    code: 'en',
+    name: 'English',
+    flag: '🇬🇧',
+    voice: 'en-IN',
+  },
+  // Other Indian languages
+  ...INDIAN_LANGUAGES.filter(lang => lang.code !== 'en').map((lang) => ({
+    code: lang.code,
+    name: lang.nativeName,
+    flag: VOICE_LANGUAGE_FLAGS[lang.code] || '🌐',
+    voice: VOICE_LOCALE_MAP[lang.code] || 'en-IN',
+  }))
 ];
+
+const VOICE_KEY_MAP = {
+  highVoltage: 'voiceVoltageDanger',
+  lowVoltage: 'voiceVoltageWarning',
+  anomaly: 'voiceAnomalyDetected',
+  billDue: 'voiceBillDueReading',
+  peakHours: 'voicePeakHours',
+  savingsTip: 'voiceSavingsTip',
+  welcome: 'voiceWelcome',
+  dailyReport: 'voiceDailyReport'
+};
 
 // Voice Alert Hook
 export const useVoiceAlert = () => {
-  const [isEnabled, setIsEnabled] = useState(true);
-  const [language, setLanguage] = useState('en');
+  const { language: selectedLanguage, t } = useLanguage();
+  const [isEnabled, setIsEnabled] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    const stored = window.localStorage.getItem('gm_voice_enabled');
+    return stored === null ? true : stored === 'true';
+  });
+  const [language, setLanguage] = useState(selectedLanguage || 'en');
   const [speaking, setSpeaking] = useState(false);
   const [volume, setVolume] = useState(1);
+
+  useEffect(() => {
+    setLanguage(selectedLanguage || 'en');
+  }, [selectedLanguage]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem('gm_voice_enabled', String(isEnabled));
+  }, [isEnabled]);
   
   const speak = useCallback((messageKey, params = {}) => {
     if (!isEnabled || typeof window === 'undefined' || !window.speechSynthesis) return;
@@ -77,17 +117,22 @@ export const useVoiceAlert = () => {
     // Cancel any ongoing speech
     window.speechSynthesis.cancel();
     
-    let message = VOICE_MESSAGES[language]?.[messageKey] || VOICE_MESSAGES['en'][messageKey];
-    if (!message) return;
+    // Use translation system only - no fallback to hardcoded messages
+    const translatedKey = VOICE_KEY_MAP[messageKey];
+    if (!translatedKey) {
+      console.warn(`Voice message key not mapped: ${messageKey}`);
+      return;
+    }
     
-    // Replace parameters
-    Object.keys(params).forEach(key => {
-      message = message.replace(`{${key}}`, params[key]);
-    });
+    const message = t(translatedKey, params);
+    if (!message || message === translatedKey) {
+      console.warn(`Translation missing for key: ${translatedKey}`);
+      return;
+    }
     
     const utterance = new SpeechSynthesisUtterance(message);
     const langConfig = LANGUAGES.find(l => l.code === language);
-    utterance.lang = langConfig?.voice || 'en-IN';
+    utterance.lang = langConfig?.voice || VOICE_LOCALE_MAP[language] || 'en-IN';
     utterance.rate = 0.9;
     utterance.pitch = 1;
     utterance.volume = volume;
@@ -97,7 +142,7 @@ export const useVoiceAlert = () => {
     utterance.onerror = () => setSpeaking(false);
     
     window.speechSynthesis.speak(utterance);
-  }, [isEnabled, language, volume]);
+  }, [isEnabled, language, t, volume]);
   
   const stopSpeaking = useCallback(() => {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
@@ -121,8 +166,8 @@ export const useVoiceAlert = () => {
 
 // Accessibility Settings Panel
 const AccessibilityPanel = ({ 
-  voiceEnabled, 
-  setVoiceEnabled,
+  voiceEnabled = true,
+  setVoiceEnabled = () => {},
   language,
   setLanguage,
   volume,
@@ -136,7 +181,13 @@ const AccessibilityPanel = ({
   offlineMode,
   className = ''
 }) => {
+  const { changeLanguage } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
+
+  const handleVoiceLanguageChange = async (langCode) => {
+    setLanguage?.(langCode);
+    await changeLanguage(langCode);
+  };
   
   return (
     <div className={`relative ${className}`}>
@@ -204,11 +255,11 @@ const AccessibilityPanel = ({
                   {/* Language Selection */}
                   <div>
                     <label className="text-xs text-gray-500 block mb-2">Voice Language</label>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-2 max-h-44 overflow-y-auto pr-1">
                       {LANGUAGES.map((lang) => (
                         <button
                           key={lang.code}
-                          onClick={() => setLanguage(lang.code)}
+                          onClick={() => handleVoiceLanguageChange(lang.code)}
                           className={`p-2 rounded-lg text-center transition-colors ${
                             language === lang.code
                               ? 'bg-emerald-100 dark:bg-emerald-900/30 border-2 border-emerald-500'
@@ -311,7 +362,9 @@ const AccessibilityPanel = ({
 };
 
 // Voice Alert Button Component  
-const VoiceAlertButton = ({ message, messageKey, params, language = 'en', className = '' }) => {
+const VoiceAlertButton = ({ message, messageKey, params, language, className = '' }) => {
+  const { language: selectedLanguage, t } = useLanguage();
+  const activeLanguage = language || selectedLanguage || 'en';
   const [speaking, setSpeaking] = useState(false);
   
   const speak = () => {
@@ -321,20 +374,26 @@ const VoiceAlertButton = ({ message, messageKey, params, language = 'en', classN
     }
     
     window.speechSynthesis.cancel();
+    setSpeaking(true);
     
-    const text = message || VOICE_MESSAGES[language]?.[messageKey] || '';
-    if (!text) return;
+    // Use translation system only - no fallback to hardcoded messages
+    const translatedKey = VOICE_KEY_MAP[messageKey];
+    if (!translatedKey) {
+      console.warn(`Voice message key not mapped: ${messageKey}`);
+      setSpeaking(false);
+      return;
+    }
     
-    let finalText = text;
-    if (params) {
-      Object.keys(params).forEach(key => {
-        finalText = finalText.replace(`{${key}}`, params[key]);
-      });
+    const finalText = t(translatedKey, params || {});
+    if (!finalText || finalText === translatedKey) {
+      console.warn(`Translation missing for key: ${translatedKey}`);
+      setSpeaking(false);
+      return;
     }
     
     const utterance = new SpeechSynthesisUtterance(finalText);
-    const langConfig = LANGUAGES.find(l => l.code === language);
-    utterance.lang = langConfig?.voice || 'en-IN';
+    const langConfig = LANGUAGES.find(l => l.code === activeLanguage);
+    utterance.lang = langConfig?.voice || VOICE_LOCALE_MAP[activeLanguage] || 'en-IN';
     utterance.rate = 0.9;
     
     utterance.onstart = () => setSpeaking(true);
@@ -415,5 +474,5 @@ const EmergencySOSButton = ({ onActivate, className = '' }) => {
   );
 };
 
-export { AccessibilityPanel, VoiceAlertButton, EmergencySOSButton, VOICE_MESSAGES, LANGUAGES };
+export { AccessibilityPanel, VoiceAlertButton, EmergencySOSButton, LANGUAGES };
 export default AccessibilityPanel;

@@ -31,6 +31,7 @@ import {
   Info
 } from 'lucide-react';
 import authService from '../services/authService';
+import { useLanguage } from '../contexts/LanguageContext';
 
 // Toggle Switch Component
 const Toggle = ({ enabled, onChange, label }) => (
@@ -81,6 +82,7 @@ const SettingRow = ({ icon: Icon, label, description, children, onClick }) => (
 
 // Main Profile/Settings Page
 const Profile = () => {
+  const { t, language, availableLanguages, changeLanguage } = useLanguage();
   const [activeTab, setActiveTab] = useState('profile');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -146,6 +148,10 @@ const Profile = () => {
     setLoading(false);
   }, []);
 
+  useEffect(() => {
+    setPreferences((prev) => ({ ...prev, language }));
+  }, [language]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -190,6 +196,10 @@ const Profile = () => {
     if (key === 'darkMode') {
       document.documentElement.classList.toggle('dark', value);
     }
+
+    if (key === 'language') {
+      changeLanguage(value);
+    }
   };
 
   const handleLogout = () => {
@@ -198,18 +208,15 @@ const Profile = () => {
   };
 
   const tabs = [
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'preferences', label: 'Preferences', icon: Settings },
-    { id: 'security', label: 'Security', icon: Shield },
+    { id: 'profile', label: t('profile'), icon: User },
+    { id: 'notifications', label: t('notifications'), icon: Bell },
+    { id: 'preferences', label: t('preferences'), icon: Settings },
+    { id: 'security', label: t('security'), icon: Shield },
   ];
 
   const languages = [
-    { code: 'en', name: 'English' },
-    { code: 'hi', name: 'हिंदी (Hindi)' },
-    { code: 'gu', name: 'ગુજરાતી (Gujarati)' },
-    { code: 'mr', name: 'मराठी (Marathi)' },
-    { code: 'ta', name: 'தமிழ் (Tamil)' },
+    { code: 'en', name: 'English', nativeName: 'English' },
+    ...availableLanguages.filter((lang) => lang.code !== 'en'),
   ];
 
   if (loading) {
@@ -225,8 +232,8 @@ const Profile = () => {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
-          <p className="text-gray-500 dark:text-gray-400">Manage your profile and preferences</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('settingsTitle')}</h1>
+          <p className="text-gray-500 dark:text-gray-400">{t('settingsSubtitle')}</p>
         </div>
 
         {/* Profile Card */}
@@ -267,11 +274,11 @@ const Profile = () => {
 
         {/* Tab Content */}
         {activeTab === 'profile' && (
-          <SectionCard icon={User} title="Personal Information">
+          <SectionCard icon={User} title={t('personalInformation')}>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Name</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('firstName')}</label>
                   <input
                     type="text"
                     name="firstName"
@@ -282,7 +289,7 @@ const Profile = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Last Name</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('lastName')}</label>
                   <input
                     type="text"
                     name="lastName"
@@ -295,7 +302,7 @@ const Profile = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mobile Number</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('mobileNumber')}</label>
                 <div className="relative">
                   <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
@@ -306,11 +313,11 @@ const Profile = () => {
                     className="w-full pl-12 pr-4 py-3 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-500 dark:text-gray-400"
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Mobile number cannot be changed</p>
+                <p className="text-xs text-gray-500 mt-1">{t('mobileCannotChange')}</p>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Village/Location</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('villageLocation')}</label>
                 <div className="relative">
                   <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
@@ -325,7 +332,7 @@ const Profile = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email (Optional)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('emailOptional')}</label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
@@ -334,7 +341,7 @@ const Profile = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     disabled={!editing}
-                    placeholder="your.email@example.com"
+                    placeholder={t('emailOptional')}
                     className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white disabled:opacity-60"
                   />
                 </div>
@@ -349,7 +356,7 @@ const Profile = () => {
                       className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
                     >
                       {saving ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                      Save Changes
+                      {t('saveChanges')}
                     </button>
                     <button
                       onClick={() => setEditing(false)}
@@ -364,7 +371,7 @@ const Profile = () => {
                     className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
                   >
                     <Edit2 className="w-5 h-5" />
-                    Edit Profile
+                    {t('editProfile')}
                   </button>
                 )}
               </div>
@@ -374,12 +381,12 @@ const Profile = () => {
 
         {activeTab === 'notifications' && (
           <div className="space-y-6">
-            <SectionCard icon={Bell} title="Notification Channels">
+            <SectionCard icon={Bell} title={t('notificationChannels')}>
               <div className="space-y-4">
                 <SettingRow 
                   icon={Bell} 
-                  label="Push Notifications" 
-                  description="Receive in-app notifications"
+                  label={t('pushNotifications')} 
+                  description={t('pushNotificationsDesc')}
                 >
                   <Toggle 
                     enabled={notifications.pushEnabled} 
@@ -389,8 +396,8 @@ const Profile = () => {
                 
                 <SettingRow 
                   icon={MessageSquare} 
-                  label="SMS Notifications" 
-                  description="Receive alerts via SMS"
+                  label={t('smsNotifications')} 
+                  description={t('smsNotificationsDesc')}
                 >
                   <Toggle 
                     enabled={notifications.smsEnabled} 
@@ -400,8 +407,8 @@ const Profile = () => {
                 
                 <SettingRow 
                   icon={notifications.soundEnabled ? Volume2 : VolumeX} 
-                  label="Notification Sound" 
-                  description="Play sound for notifications"
+                  label={t('notificationSound')} 
+                  description={t('notificationSoundDesc')}
                 >
                   <Toggle 
                     enabled={notifications.soundEnabled} 
@@ -411,11 +418,11 @@ const Profile = () => {
               </div>
             </SectionCard>
 
-            <SectionCard icon={Bell} title="Notification Types">
+            <SectionCard icon={Bell} title={t('notificationTypes')}>
               <div className="space-y-4">
                 <SettingRow 
-                  label="Alert Notifications" 
-                  description="Meter alerts and warnings"
+                  label={t('alertNotifications')} 
+                  description={t('alertNotificationsDesc')}
                 >
                   <Toggle 
                     enabled={notifications.alertNotifications} 
@@ -424,8 +431,8 @@ const Profile = () => {
                 </SettingRow>
                 
                 <SettingRow 
-                  label="Billing Notifications" 
-                  description="Bill generation and payment reminders"
+                  label={t('billingNotifications')} 
+                  description={t('billingNotificationsDesc')}
                 >
                   <Toggle 
                     enabled={notifications.billingNotifications} 
@@ -434,8 +441,8 @@ const Profile = () => {
                 </SettingRow>
                 
                 <SettingRow 
-                  label="System Updates" 
-                  description="App updates and new features"
+                  label={t('systemUpdates')} 
+                  description={t('systemUpdatesDesc')}
                 >
                   <Toggle 
                     enabled={notifications.systemUpdates} 
@@ -449,12 +456,12 @@ const Profile = () => {
 
         {activeTab === 'preferences' && (
           <div className="space-y-6">
-            <SectionCard icon={Settings} title="Display">
+            <SectionCard icon={Settings} title={t('display')}>
               <div className="space-y-4">
                 <SettingRow 
                   icon={preferences.darkMode ? Moon : Sun} 
-                  label="Dark Mode" 
-                  description="Use dark theme"
+                  label={t('darkMode')} 
+                  description={t('darkModeDesc')}
                 >
                   <Toggle 
                     enabled={preferences.darkMode} 
@@ -464,8 +471,8 @@ const Profile = () => {
                 
                 <SettingRow 
                   icon={RefreshCw} 
-                  label="Auto Refresh" 
-                  description="Automatically refresh data"
+                  label={t('autoRefresh')} 
+                  description={t('autoRefreshDesc')}
                 >
                   <Toggle 
                     enabled={preferences.autoRefresh} 
@@ -475,19 +482,19 @@ const Profile = () => {
               </div>
             </SectionCard>
 
-            <SectionCard icon={Globe} title="Language">
+            <SectionCard icon={Globe} title={t('language')}>
               <div className="space-y-2">
                 {languages.map((lang) => (
                   <button
                     key={lang.code}
                     onClick={() => handlePreferenceChange('language', lang.code)}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-colors
-                      ${preferences.language === lang.code 
+                      ${language === lang.code 
                         ? 'bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-500' 
                         : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600'}`}
                   >
-                    <span className="font-medium text-gray-900 dark:text-white">{lang.name}</span>
-                    {preferences.language === lang.code && (
+                      <span className="font-medium text-gray-900 dark:text-white">{lang.nativeName || lang.name}</span>
+                    {language === lang.code && (
                       <Check className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     )}
                   </button>
@@ -495,12 +502,12 @@ const Profile = () => {
               </div>
             </SectionCard>
 
-            <SectionCard icon={Info} title="Data Usage">
+            <SectionCard icon={Info} title={t('dataUsage')}>
               <div className="space-y-2">
                 {[
-                  { value: 'low', label: 'Low', desc: 'Minimal data, basic charts' },
-                  { value: 'normal', label: 'Normal', desc: 'Standard data usage' },
-                  { value: 'high', label: 'High', desc: 'Full data, all features' },
+                  { value: 'low', label: t('dataUsageLow'), desc: t('dataUsageLowDesc') },
+                  { value: 'normal', label: t('dataUsageNormal'), desc: t('dataUsageNormalDesc') },
+                  { value: 'high', label: t('dataUsageHigh'), desc: t('dataUsageHighDesc') },
                 ].map((option) => (
                   <button
                     key={option.value}
@@ -526,12 +533,12 @@ const Profile = () => {
 
         {activeTab === 'security' && (
           <div className="space-y-6">
-            <SectionCard icon={Shield} title="Security">
+            <SectionCard icon={Shield} title={t('security')}>
               <div className="divide-y divide-gray-100 dark:divide-gray-700">
                 <SettingRow 
                   icon={Lock} 
-                  label="Change PIN" 
-                  description="Update your 4-digit PIN"
+                  label={t('changePin')} 
+                  description={t('changePinDesc')}
                   onClick={() => {}}
                 >
                   <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -539,18 +546,18 @@ const Profile = () => {
                 
                 <SettingRow 
                   icon={Smartphone} 
-                  label="Two-Factor Authentication" 
-                  description="OTP verification enabled"
+                  label={t('twoFactorAuth')} 
+                  description={t('twoFactorAuthDesc')}
                 >
                   <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-medium rounded-full">
-                    Enabled
+                    {t('enabled')}
                   </span>
                 </SettingRow>
                 
                 <SettingRow 
                   icon={Eye} 
-                  label="Login History" 
-                  description="View recent login activity"
+                  label={t('loginHistory')} 
+                  description={t('loginHistoryDesc')}
                   onClick={() => {}}
                 >
                   <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -558,12 +565,12 @@ const Profile = () => {
               </div>
             </SectionCard>
 
-            <SectionCard icon={Download} title="Data">
+            <SectionCard icon={Download} title={t('data')}>
               <div className="divide-y divide-gray-100 dark:divide-gray-700">
                 <SettingRow 
                   icon={Download} 
-                  label="Export My Data" 
-                  description="Download all your data"
+                  label={t('exportMyData')} 
+                  description={t('exportMyDataDesc')}
                   onClick={() => {}}
                 >
                   <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -571,8 +578,8 @@ const Profile = () => {
                 
                 <SettingRow 
                   icon={Trash2} 
-                  label="Delete Account" 
-                  description="Permanently delete your account"
+                  label={t('deleteAccount')} 
+                  description={t('deleteAccountDesc')}
                   onClick={() => {}}
                 >
                   <ChevronRight className="w-5 h-5 text-red-400" />
@@ -580,12 +587,12 @@ const Profile = () => {
               </div>
             </SectionCard>
 
-            <SectionCard icon={HelpCircle} title="Support">
+            <SectionCard icon={HelpCircle} title={t('support')}>
               <div className="divide-y divide-gray-100 dark:divide-gray-700">
                 <SettingRow 
                   icon={HelpCircle} 
-                  label="Help Center" 
-                  description="FAQs and guides"
+                  label={t('helpCenter')} 
+                  description={t('helpCenterDesc')}
                   onClick={() => {}}
                 >
                   <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -593,8 +600,8 @@ const Profile = () => {
                 
                 <SettingRow 
                   icon={MessageSquare} 
-                  label="Contact Support" 
-                  description="Get help from our team"
+                  label={t('contactSupport')} 
+                  description={t('contactSupportDesc')}
                   onClick={() => {}}
                 >
                   <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -602,8 +609,8 @@ const Profile = () => {
                 
                 <SettingRow 
                   icon={Info} 
-                  label="About" 
-                  description="App version 1.0.0"
+                  label={t('about')} 
+                  description={t('aboutDesc')}
                   onClick={() => {}}
                 >
                   <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -619,7 +626,7 @@ const Profile = () => {
           className="w-full mt-6 flex items-center justify-center gap-2 px-4 py-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors font-medium"
         >
           <LogOut className="w-5 h-5" />
-          Sign Out
+          {t('signOut')}
         </button>
       </div>
     </div>

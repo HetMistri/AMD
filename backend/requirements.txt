@@ -46,3 +46,6 @@ phonenumbers==9.0.21
 
 # API Documentation
 drf-yasg==1.21.11
+
+# Text-to-Speech
+gTTS==2.4.0

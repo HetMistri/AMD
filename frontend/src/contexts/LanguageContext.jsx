@@ -24,6 +24,12 @@ export const LanguageProvider = ({ children }) => {
   const [language, setLanguage] = useState('en');
   const [translations, setTranslations] = useState(BASE_TRANSLATIONS);
   const [loading, setLoading] = useState(false);
+  const [translationProgress, setTranslationProgress] = useState({
+    completed: 0,
+    total: Object.keys(BASE_TRANSLATIONS).length,
+    percent: 0,
+    language: 'en',
+  });
   const [availableLanguages] = useState(INDIAN_LANGUAGES);
 
   useEffect(() => {
@@ -42,16 +48,38 @@ export const LanguageProvider = ({ children }) => {
     if (lang === 'en') {
       setTranslations(BASE_TRANSLATIONS);
       setLanguage(lang);
+      storageService.setLanguage(lang);
+      setTranslationProgress({
+        completed: Object.keys(BASE_TRANSLATIONS).length,
+        total: Object.keys(BASE_TRANSLATIONS).length,
+        percent: 100,
+        language: 'en',
+      });
       return;
     }
 
     setLoading(true);
+    setTranslationProgress({
+      completed: 0,
+      total: Object.keys(BASE_TRANSLATIONS).length,
+      percent: 0,
+      language: lang,
+    });
     
     try {
-      const translatedTexts = await translateAllTexts(lang);
+      const translatedTexts = await translateAllTexts(lang, ({ completed, total }) => {
+        const percent = total > 0 ? Math.min(100, Math.round((completed / total) * 100)) : 0;
+        setTranslationProgress({ completed, total, percent, language: lang });
+      });
       setTranslations(translatedTexts);
       setLanguage(lang);
       storageService.setLanguage(lang);
+      setTranslationProgress({
+        completed: Object.keys(BASE_TRANSLATIONS).length,
+        total: Object.keys(BASE_TRANSLATIONS).length,
+        percent: 100,
+        language: lang,
+      });
       
       toast.success(`Language changed to ${INDIAN_LANGUAGES.find(l => l.code === lang)?.nativeName || lang}`, {
         duration: 2000,
@@ -63,6 +91,12 @@ export const LanguageProvider = ({ children }) => {
       });
       setTranslations(BASE_TRANSLATIONS);
       setLanguage('en');
+      setTranslationProgress({
+        completed: Object.keys(BASE_TRANSLATIONS).length,
+        total: Object.keys(BASE_TRANSLATIONS).length,
+        percent: 100,
+        language: 'en',
+      });
     } finally {
       setLoading(false);
     }
@@ -74,8 +108,16 @@ export const LanguageProvider = ({ children }) => {
       return;
     }
 
-    if (lang === language) return;
+    const hasCompleteTranslations = Object.keys(BASE_TRANSLATIONS).every(
+      (key) => Object.prototype.hasOwnProperty.call(translations, key)
+    );
 
+    if (lang === language && hasCompleteTranslations) {
+      console.log('Language already selected:', lang);
+      return;
+    }
+
+    console.log('🌐 Changing language to:', lang);
     await loadTranslations(lang);
   };
 
@@ -90,6 +132,7 @@ export const LanguageProvider = ({ children }) => {
     t,
     translations,
     loading,
+    translationProgress,
     availableLanguages,
   };
 

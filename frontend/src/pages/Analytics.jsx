@@ -263,21 +263,21 @@ const Analytics = ({ onLogout }) => {
 
   const getEfficiencyRadarData = () => {
     return [
-      { subject: 'Power Factor', A: 92, fullMark: 100 },
-      { subject: 'Load Balance', A: 85, fullMark: 100 },
-      { subject: 'Peak Efficiency', A: 78, fullMark: 100 },
-      { subject: 'Off-Peak Usage', A: 88, fullMark: 100 },
-      { subject: 'Standby Power', A: 95, fullMark: 100 },
-      { subject: 'Voltage Quality', A: 90, fullMark: 100 },
+      { subject: t('powerFactorSubject'), A: 92, fullMark: 100 },
+      { subject: t('loadBalanceSubject'), A: 85, fullMark: 100 },
+      { subject: t('peakEfficiencySubject'), A: 78, fullMark: 100 },
+      { subject: t('offPeakUsageSubject'), A: 88, fullMark: 100 },
+      { subject: t('standbyPowerSubject'), A: 95, fullMark: 100 },
+      { subject: t('voltageQualitySubject'), A: 90, fullMark: 100 },
     ];
   };
 
   const getCostBreakdownData = () => {
     return [
-      { name: 'Irrigation', value: 45, color: '#10b981' },
-      { name: 'Lighting', value: 20, color: '#3b82f6' },
-      { name: 'Equipment', value: 25, color: '#f59e0b' },
-      { name: 'Other', value: 10, color: '#8b5cf6' },
+      { name: t('irrigationCategory'), value: 45, color: '#10b981' },
+      { name: t('lightingCategory'), value: 20, color: '#3b82f6' },
+      { name: t('equipmentCategory'), value: 25, color: '#f59e0b' },
+      { name: t('otherCategory'), value: 10, color: '#8b5cf6' },
     ];
   };
 
@@ -344,11 +344,11 @@ const Analytics = ({ onLogout }) => {
   };
 
   const StatCard = ({ title, value, unit, icon: Icon, trend, trendValue, color }) => (
-    <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-gray-700">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-slate-500 text-sm font-medium">{title}</p>
-          <h3 className="text-3xl font-bold mt-2 text-slate-900">
+          <p className="text-slate-500 dark:text-gray-400 text-sm font-medium">{title}</p>
+          <h3 className="text-3xl font-bold mt-2 text-slate-900 dark:text-white">
             {value}<span className="text-lg ml-1">{unit}</span>
           </h3>
           {trend && (
@@ -367,29 +367,29 @@ const Analytics = ({ onLogout }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <LoadingSpinner size="large" text="Loading Analytics..." />
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center">
+        <LoadingSpinner size="large" text={t('loadingAnalytics')} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
       <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
               <BarChart3 className="w-8 h-8 text-emerald-500" />
-              Energy Analytics
+              {t('analyticsTitle')}
             </h1>
-            <p className="text-slate-600 mt-1">
-              ML-powered insights and consumption analysis
+            <p className="text-slate-600 dark:text-gray-400 mt-1">
+              {t('analyticsSubtitle')}
             </p>
           </div>
           
           {/* Date Range Selector */}
-          <div className="flex items-center gap-2 bg-white rounded-xl p-1 shadow-md border border-slate-200">
+          <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-xl p-1 shadow-md border border-slate-200 dark:border-gray-700">
             {['day', 'week', 'month'].map((range) => (
               <button
                 key={range}
@@ -397,7 +397,7 @@ const Analytics = ({ onLogout }) => {
                 className={`px-4 py-2 rounded-lg font-medium transition-all ${
                   dateRange === range
                     ? 'bg-emerald-500 text-white'
-                    : 'text-slate-600 hover:bg-slate-100'
+                    : 'text-slate-600 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-gray-700'
                 }`}
               >
                 {range.charAt(0).toUpperCase() + range.slice(1)}
@@ -409,7 +409,7 @@ const Analytics = ({ onLogout }) => {
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
-            title="Total Consumption"
+            title={t('totalConsumption')}
             value={liveStats.totalConsumption}
             unit="kWh"
             icon={Zap}
@@ -418,7 +418,7 @@ const Analytics = ({ onLogout }) => {
             color="bg-emerald-500"
           />
           <StatCard
-            title="Total Cost"
+            title={t('totalCost')}
             value={`₹${liveStats.totalCost.toLocaleString()}`}
             unit=""
             icon={DollarSign}
@@ -427,7 +427,7 @@ const Analytics = ({ onLogout }) => {
             color="bg-blue-500"
           />
           <StatCard
-            title="Efficiency Score"
+            title={t('efficiencyScore')}
             value={liveStats.efficiencyScore}
             unit="%"
             icon={Target}
@@ -436,7 +436,7 @@ const Analytics = ({ onLogout }) => {
             color="bg-amber-500"
           />
           <StatCard
-            title="Carbon Saved"
+            title={t('carbonSaved')}
             value={liveStats.carbonSaved}
             unit="kg"
             icon={Leaf}
@@ -449,11 +449,11 @@ const Analytics = ({ onLogout }) => {
         {/* Tab Navigation */}
         <div className="flex gap-2 overflow-x-auto pb-2">
           {[
-            { id: 'consumption', label: 'Consumption Trends', icon: TrendingUp },
-            { id: 'efficiency', label: 'Efficiency Analysis', icon: Activity },
-            { id: 'cost', label: 'Cost Projection', icon: DollarSign },
-            { id: 'carbon', label: 'Carbon Footprint', icon: Leaf },
-            { id: 'patterns', label: 'Usage Patterns', icon: PieChart },
+            { id: 'consumption', label: t('chartTitle'), icon: TrendingUp },
+            { id: 'efficiency', label: t('efficiency'), icon: Activity },
+            { id: 'cost', label: t('billForecast'), icon: DollarSign },
+            { id: 'carbon', label: t('carbonSaved'), icon: Leaf },
+            { id: 'patterns', label: t('usage'), icon: PieChart },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -461,7 +461,7 @@ const Analytics = ({ onLogout }) => {
               className={`flex items-center gap-2 px-4 py-3 rounded-xl font-medium whitespace-nowrap transition-all ${
                 activeTab === tab.id
                   ? 'bg-emerald-500 text-white shadow-lg'
-                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                    : 'bg-white dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-gray-700 border border-slate-200 dark:border-gray-700'
               }`}
             >
               <tab.icon className="w-5 h-5" />
@@ -473,18 +473,18 @@ const Analytics = ({ onLogout }) => {
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Main Chart */}
-          <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-slate-900">
-                {activeTab === 'consumption' && 'Energy Consumption Over Time'}
-                {activeTab === 'efficiency' && 'Efficiency Performance'}
-                {activeTab === 'cost' && 'Cost Analysis & Projection'}
-                {activeTab === 'carbon' && 'Carbon Emissions Tracking'}
-                {activeTab === 'patterns' && 'Daily Usage Pattern'}
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                {activeTab === 'consumption' && t('energyConsumptionOverTime')}
+                {activeTab === 'efficiency' && t('efficiencyPerformance')}
+                {activeTab === 'cost' && t('costAnalysisProjection')}
+                {activeTab === 'carbon' && t('carbonEmissionsTracking')}
+                {activeTab === 'patterns' && t('dailyUsagePattern')}
               </h2>
-              <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-lg text-slate-600 hover:bg-slate-200 transition-colors">
+              <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-gray-700 rounded-lg text-slate-600 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-gray-600 transition-colors">
                 <Download className="w-4 h-4" />
-                Export
+                {t('download')}
               </button>
             </div>
             
@@ -528,7 +528,7 @@ const Analytics = ({ onLogout }) => {
                       strokeWidth={2}
                       fillOpacity={1} 
                       fill="url(#colorEnergy)" 
-                      name="Energy (kWh)"
+                      name={t('energyKwhLabel')}
                     />
                     <Area 
                       yAxisId="right"
@@ -538,7 +538,7 @@ const Analytics = ({ onLogout }) => {
                       strokeWidth={2}
                       fillOpacity={1} 
                       fill="url(#colorCost)" 
-                      name="Cost (₹)"
+                      name={t('costRupeeLabel')}
                     />
                   </AreaChart>
                 )}
@@ -563,7 +563,7 @@ const Analytics = ({ onLogout }) => {
                       stroke="#3b82f6" 
                       strokeWidth={3}
                       dot={{ fill: '#3b82f6', strokeWidth: 2 }}
-                      name="Efficiency (%)"
+                      name={t('efficiencyPercentLabel')}
                     />
                     <Line 
                       type="monotone" 
@@ -571,7 +571,7 @@ const Analytics = ({ onLogout }) => {
                       stroke="#10b981" 
                       strokeWidth={2}
                       dot={{ fill: '#10b981', strokeWidth: 1 }}
-                      name="Load Balance (%)"
+                      name={t('loadBalancePercentLabel')}
                     />
                   </LineChart>
                 )}
@@ -590,7 +590,7 @@ const Analytics = ({ onLogout }) => {
                       }} 
                     />
                     <Legend />
-                    <Bar dataKey="cost" fill="#f59e0b" radius={[4, 4, 0, 0]} name="Cost (₹)" />
+                    <Bar dataKey="cost" fill="#f59e0b" radius={[4, 4, 0, 0]} name={t('costRupeeLabel')} />
                   </BarChart>
                 )}
                 
@@ -631,7 +631,7 @@ const Analytics = ({ onLogout }) => {
                       strokeWidth={2}
                       fillOpacity={1} 
                       fill="url(#colorCarbonSaved)" 
-                      name="CO₂ Saved (kg)"
+                      name={t('carbonSavedKgLabel')}
                     />
                     <Area 
                       type="monotone" 
@@ -640,7 +640,7 @@ const Analytics = ({ onLogout }) => {
                       strokeWidth={2}
                       fillOpacity={1} 
                       fill="url(#colorCarbonEmitted)" 
-                      name="CO₂ Emitted (kg)"
+                      name={t('carbonEmittedKgLabel')}
                     />
                   </AreaChart>
                 )}
@@ -659,24 +659,24 @@ const Analytics = ({ onLogout }) => {
                       }} 
                     />
                     <Legend />
-                    <Bar dataKey="usage" fill="#10b981" radius={[2, 2, 0, 0]} name="Usage (kW)" />
-                    <Bar dataKey="peak" fill="#ef4444" radius={[2, 2, 0, 0]} name="Peak Hours" />
+                    <Bar dataKey="usage" fill="#10b981" radius={[2, 2, 0, 0]} name={t('usageKwLabel')} />
+                    <Bar dataKey="peak" fill="#ef4444" radius={[2, 2, 0, 0]} name={t('peakHoursLabel')} />
                   </BarChart>
                 )}
               </ResponsiveContainer>
             </div>
             
             {/* Chart-specific Insights */}
-            <div className="mt-4 p-4 bg-slate-50 rounded-lg">
+            <div className="mt-4 p-4 bg-slate-50 dark:bg-gray-700 rounded-lg">
               {activeTab === 'consumption' && (
                 <div className="flex items-start gap-3">
                   <Sparkles className="w-5 h-5 text-emerald-500 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-slate-900">AI Insight</p>
-                    <p className="text-sm text-slate-600 mt-1">
-                      {dateRange === 'day' && 'Peak consumption occurs during 10 AM - 2 PM and 6 PM - 9 PM. Consider load balancing during these hours.'}
-                      {dateRange === 'week' && 'Weekday consumption is 40% higher than weekends. Optimize irrigation schedules for better efficiency.'}
-                      {dateRange === 'month' && 'Mid-month shows highest energy usage (irrigation season). Plan maintenance during low-consumption periods.'}
+                    <p className="text-sm font-medium text-slate-900 dark:text-white">{t('aiInsightLabel')}</p>
+                    <p className="text-sm text-slate-600 dark:text-gray-300 mt-1">
+                      {dateRange === 'day' && t('insightConsumptionDay')}
+                      {dateRange === 'week' && t('insightConsumptionWeek')}
+                      {dateRange === 'month' && t('insightConsumptionMonth')}
                     </p>
                   </div>
                 </div>
@@ -685,11 +685,11 @@ const Analytics = ({ onLogout }) => {
                 <div className="flex items-start gap-3">
                   <Brain className="w-5 h-5 text-blue-500 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-slate-900">Efficiency Analysis</p>
-                    <p className="text-sm text-slate-600 mt-1">
-                      {dateRange === 'day' && 'Night hours show 95%+ efficiency. Peak loads (10 AM-2 PM) have reduced efficiency due to heavy equipment usage.'}
-                      {dateRange === 'week' && 'Weekend efficiency is 12% higher due to reduced load. Consider power factor correction during weekdays.'}
-                      {dateRange === 'month' && 'Average efficiency: 82%. Install capacitor banks to improve power factor during high-load periods.'}
+                    <p className="text-sm font-medium text-slate-900 dark:text-white">{t('efficiencyAnalysisLabel')}</p>
+                    <p className="text-sm text-slate-600 dark:text-gray-300 mt-1">
+                      {dateRange === 'day' && t('insightEfficiencyDay')}
+                      {dateRange === 'week' && t('insightEfficiencyWeek')}
+                      {dateRange === 'month' && t('insightEfficiencyMonth')}
                     </p>
                   </div>
                 </div>
@@ -698,11 +698,11 @@ const Analytics = ({ onLogout }) => {
                 <div className="flex items-start gap-3">
                   <DollarSign className="w-5 h-5 text-amber-500 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-slate-900">Cost Optimization</p>
-                    <p className="text-sm text-slate-600 mt-1">
-                      {dateRange === 'day' && 'Shifting 30% of non-critical loads to off-peak hours could save ₹50-80 daily.'}
-                      {dateRange === 'week' && `Current average: ₹${Math.round(liveStats.totalCost/7)}/day. Solar integration could reduce this by 20-25%.`}
-                      {dateRange === 'month' && `Monthly cost: ₹${liveStats.totalCost.toLocaleString()}. Demand-side management could save ₹800-1200/month.`}
+                    <p className="text-sm font-medium text-slate-900 dark:text-white">{t('costOptimizationLabel')}</p>
+                    <p className="text-sm text-slate-600 dark:text-gray-300 mt-1">
+                      {dateRange === 'day' && t('insightCostDay')}
+                      {dateRange === 'week' && t('insightCostWeek', { costPerDay: Math.round(liveStats.totalCost/7) })}
+                      {dateRange === 'month' && t('insightCostMonth', { monthlyCost: liveStats.totalCost })}
                     </p>
                   </div>
                 </div>
@@ -711,11 +711,11 @@ const Analytics = ({ onLogout }) => {
                 <div className="flex items-start gap-3">
                   <Leaf className="w-5 h-5 text-green-500 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-slate-900">Environmental Impact</p>
-                    <p className="text-sm text-slate-600 mt-1">
-                      {dateRange === 'day' && 'Green energy offset: 15%. Daily carbon saved equivalent to planting 0.2 trees.'}
-                      {dateRange === 'week' && `Weekly carbon savings: ${liveStats.carbonSaved}kg CO₂. Equivalent to removing a car for 2 days.`}
-                      {dateRange === 'month' && `Monthly carbon offset: ${liveStats.carbonSaved}kg. Expanding solar could double this impact.`}
+                    <p className="text-sm font-medium text-slate-900 dark:text-white">{t('environmentalImpactLabel')}</p>
+                    <p className="text-sm text-slate-600 dark:text-gray-300 mt-1">
+                      {dateRange === 'day' && t('insightCarbonDay')}
+                      {dateRange === 'week' && t('insightCarbonWeek', { carbonSaved: liveStats.carbonSaved })}
+                      {dateRange === 'month' && t('insightCarbonMonth', { carbonSaved: liveStats.carbonSaved })}
                     </p>
                   </div>
                 </div>
@@ -724,9 +724,9 @@ const Analytics = ({ onLogout }) => {
                 <div className="flex items-start gap-3">
                   <Activity className="w-5 h-5 text-purple-500 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-slate-900">Usage Pattern</p>
-                    <p className="text-sm text-slate-600 mt-1">
-                      Peak usage: 10 AM - 2 PM (irrigation) and 6 PM - 9 PM (lighting/equipment). Off-peak hours offer better rates.
+                    <p className="text-sm font-medium text-slate-900 dark:text-white">{t('usagePatternLabel')}</p>
+                    <p className="text-sm text-slate-600 dark:text-gray-300 mt-1">
+                      {t('usagePatternText')}
                     </p>
                   </div>
                 </div>
@@ -735,8 +735,8 @@ const Analytics = ({ onLogout }) => {
           </div>
 
           {/* Efficiency Radar */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
-            <h3 className="text-lg font-bold text-slate-900 mb-4">Efficiency Breakdown</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-gray-700">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">{t('efficiencyBreakdown')}</h3>
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={getEfficiencyRadarData()}>
@@ -744,7 +744,7 @@ const Analytics = ({ onLogout }) => {
                   <PolarAngleAxis dataKey="subject" stroke="#9ca3af" fontSize={11} />
                   <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#9ca3af" />
                   <Radar
-                    name="Score"
+                    name={t('scoreLabel')}
                     dataKey="A"
                     stroke="#10b981"
                     fill="#10b981"
@@ -757,8 +757,8 @@ const Analytics = ({ onLogout }) => {
           </div>
 
           {/* Cost Breakdown Pie */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
-            <h3 className="text-lg font-bold text-slate-900 mb-4">Cost Distribution</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-gray-700">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">{t('costDistribution')}</h3>
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <RePieChart>
@@ -790,22 +790,22 @@ const Analytics = ({ onLogout }) => {
               <Cpu className="w-8 h-8 text-white" />
             </div>
             <div className="flex-1">
-              <h3 className="text-xl font-bold text-white mb-2">ML-Powered Insights</h3>
+              <h3 className="text-xl font-bold text-white mb-2">{t('mlPoweredInsights')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                  <p className="text-emerald-100 text-sm">Predicted Monthly Usage</p>
+                  <p className="text-emerald-100 text-sm">{t('predictedMonthlyUsage')}</p>
                   <p className="text-2xl font-bold text-white mt-1">245 kWh</p>
-                  <p className="text-emerald-200 text-xs mt-1">Based on current patterns</p>
+                  <p className="text-emerald-200 text-xs mt-1">{t('basedOnCurrentPatterns')}</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                  <p className="text-emerald-100 text-sm">Anomaly Detection</p>
-                  <p className="text-2xl font-bold text-white mt-1">2 Found</p>
-                  <p className="text-emerald-200 text-xs mt-1">Last 7 days</p>
+                  <p className="text-emerald-100 text-sm">{t('anomalyDetectionLabel')}</p>
+                  <p className="text-2xl font-bold text-white mt-1">2 {t('foundText')}</p>
+                  <p className="text-emerald-200 text-xs mt-1">{t('lastSevenDays')}</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                  <p className="text-emerald-100 text-sm">Optimization Potential</p>
+                  <p className="text-emerald-100 text-sm">{t('optimizationPotential')}</p>
                   <p className="text-2xl font-bold text-white mt-1">₹180/mo</p>
-                  <p className="text-emerald-200 text-xs mt-1">Savings opportunity</p>
+                  <p className="text-emerald-200 text-xs mt-1">{t('savingsOpportunity')}</p>
                 </div>
               </div>
             </div>

@@ -18,38 +18,89 @@ export const useRealtimeData = (initialData = {}, updateInterval = 2000) => {
   const [history, setHistory] = useState([]);
   const iterationRef = useRef(0);
   const cumulativeEnergyRef = useRef(initialData.energy || 245.67);
+  
+  // Global alert generation timer
+  const lastAlertTimeRef = useRef(Date.now() - 30000); // Start with time in past to allow first alert
+  const nextAlertIntervalRef = useRef(25000 + Math.random() * 25000); // 25-50 seconds
+  
+  // Available alert types to randomly select from
+  const alertTypesRef = useRef([
+    'high-voltage',
+    'low-voltage',
+    'anomaly',
+    'power-surge',
+    'low-power',
+    'frequency'
+  ]);
 
   // Generate realistic fluctuations
   const generateReading = useCallback(() => {
     iterationRef.current += 1;
-    const iteration = iterationRef.current;
     const now = new Date();
+    const nowTime = now.getTime();
     const hour = now.getHours();
     
-    // Every 15th reading, simulate a voltage event (for demo)
-    const isDemoEvent = iteration % 15 === 0;
+    // Check if enough time has passed to generate the next alert
+    const timeSinceLastAlert = nowTime - lastAlertTimeRef.current;
+    let selectedAlertType = null;
     
-    let voltage, power, pumpActive;
+    if (timeSinceLastAlert >= nextAlertIntervalRef.current) {
+      // Time to generate an alert - pick a random type
+      selectedAlertType = alertTypesRef.current[Math.floor(Math.random() * alertTypesRef.current.length)];
+      
+      // Update last alert time and generate new interval
+      lastAlertTimeRef.current = nowTime;
+      nextAlertIntervalRef.current = 25000 + Math.random() * 25000; // 25-50 seconds
+      
+      console.log(`🚨 Alert generated: ${selectedAlertType} (next in ${(nextAlertIntervalRef.current / 1000).toFixed(1)}s)`);
+    }
     
-    if (isDemoEvent) {
-      // Voltage surge scenario
+    // Determine readings based on selected alert type
+    let voltage, power, pumpActive, frequency;
+    
+    if (selectedAlertType === 'high-voltage') {
       voltage = 286 + Math.random() * 19; // 286-305V
       pumpActive = true;
-      power = 7500 + Math.random() * 500; // High power spike
+      power = 7500 + Math.random() * 500;
+      frequency = 49.95 + Math.random() * 0.1;
+    } else if (selectedAlertType === 'low-voltage') {
+      voltage = 178 + Math.random() * 18; // 178-196V
+      pumpActive = true;
+      power = 3000 + Math.random() * 900;
+      frequency = 49.95 + Math.random() * 0.1;
+    } else if (selectedAlertType === 'anomaly') {
+      voltage = 226 + Math.random() * 8;
+      pumpActive = true;
+      power = 6800 + Math.random() * 900;
+      frequency = 49.95 + Math.random() * 0.1;
+    } else if (selectedAlertType === 'power-surge') {
+      voltage = 225 + Math.random() * 10;
+      pumpActive = true;
+      power = 8500 + Math.random() * 800;
+      frequency = 49.95 + Math.random() * 0.1;
+    } else if (selectedAlertType === 'low-power') {
+      voltage = 230 + Math.random() * 5;
+      pumpActive = true;
+      power = 500 + Math.random() * 300;
+      frequency = 49.95 + Math.random() * 0.1;
+    } else if (selectedAlertType === 'frequency') {
+      voltage = 228 + Math.random() * 6;
+      pumpActive = true;
+      power = 4500 + Math.random() * 500;
+      frequency = 48.5 + Math.random() * 3; // 48.5-51.5Hz (unstable)
     } else {
       // Normal operation with time-based patterns
       const baseVoltage = 230;
-      // Voltage slightly lower during peak hours (6-9 PM)
       const peakHourDrop = (hour >= 18 && hour <= 21) ? -5 : 0;
       voltage = baseVoltage + peakHourDrop + (Math.random() * 8 - 4);
       
-      // Pump more likely during day (6 AM - 6 PM)
       const pumpProbability = (hour >= 6 && hour <= 18) ? 0.4 : 0.15;
       pumpActive = Math.random() < pumpProbability;
       
-      // Power based on pump status
       const basePower = pumpActive ? 4500 : 200;
       power = basePower + (Math.random() * 700 - 350);
+      
+      frequency = 49.95 + Math.random() * 0.1;
     }
     
     // Calculate current from power and voltage
@@ -57,9 +108,6 @@ export const useRealtimeData = (initialData = {}, updateInterval = 2000) => {
     
     // Power factor varies slightly
     const powerFactor = 0.92 + Math.random() * 0.07;
-    
-    // Frequency stays near 50Hz
-    const frequency = 49.95 + Math.random() * 0.1;
     
     // Energy accumulation (accelerated for demo)
     const energyIncrement = (power * (updateInterval / 3600000)) * 60; // 60x acceleration
@@ -75,7 +123,8 @@ export const useRealtimeData = (initialData = {}, updateInterval = 2000) => {
       pumpActive,
       timestamp: now,
       isLive: true,
-      isAnomaly: isDemoEvent,
+      isAnomaly: selectedAlertType === 'anomaly',
+      alertEventType: selectedAlertType,
       voltageStability: Math.abs(230 - voltage),
     };
   }, [updateInterval]);

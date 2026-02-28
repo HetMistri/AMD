@@ -11,7 +11,7 @@ const Auth = ({ onAuthSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [step, setStep] = useState('mobile'); // 'mobile' or 'otp'
   const [loading, setLoading] = useState(false);
-  const { isDark } = useTheme();
+  useTheme();
   const { t, language } = useLanguage();
 
   const [formData, setFormData] = useState({
@@ -231,17 +231,17 @@ const Auth = ({ onAuthSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-xl shadow-emerald-500/25 mb-4">
             <span className="text-2xl font-bold text-white">GM</span>
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
             Gram Meter
           </h1>
-          <p className="text-slate-600">
+          <p className="text-slate-600 dark:text-gray-400">
             {step === 'mobile' 
               ? (isLogin ? 'Welcome back!' : 'Create your account')
               : 'Enter verification code'
@@ -250,16 +250,16 @@ const Auth = ({ onAuthSuccess }) => {
         </div>
 
         {/* Auth Card */}
-        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 p-8">
           {/* Tabs - Only show on mobile step */}
           {step === 'mobile' && (
-            <div className="flex gap-2 mb-6 bg-slate-100 p-1 rounded-xl">
+            <div className="flex gap-2 mb-6 bg-slate-100 dark:bg-gray-700 p-1 rounded-xl">
               <button
                 onClick={() => setIsLogin(true)}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium transition-all duration-200 text-base ${
                   isLogin
-                    ? 'bg-white text-emerald-600 shadow-md'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white dark:bg-gray-800 text-emerald-600 shadow-md'
+                    : 'text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <LogIn className="w-5 h-5" />
@@ -269,8 +269,8 @@ const Auth = ({ onAuthSuccess }) => {
                 onClick={() => setIsLogin(false)}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium transition-all duration-200 text-base ${
                   !isLogin
-                    ? 'bg-white text-emerald-600 shadow-md'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white dark:bg-gray-800 text-emerald-600 shadow-md'
+                    : 'text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <UserPlus className="w-5 h-5" />
@@ -287,7 +287,7 @@ const Auth = ({ onAuthSuccess }) => {
                 <>
                   {/* First Name */}
                   <div>
-                    <label className="block text-base font-semibold text-slate-700 mb-2">
+                    <label className="block text-base font-semibold text-slate-700 dark:text-gray-300 mb-2">
                       First Name *
                     </label>
                     <div className="relative">
@@ -299,7 +299,7 @@ const Auth = ({ onAuthSuccess }) => {
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleChange}
-                        className="block w-full pl-12 pr-4 py-3 text-lg border-2 border-slate-300 rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors"
+                        className="block w-full pl-12 pr-4 py-3 text-lg border-2 border-slate-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors"
                         placeholder="Enter first name"
                         required={!isLogin}
                       />
@@ -308,7 +308,7 @@ const Auth = ({ onAuthSuccess }) => {
 
                   {/* Last Name */}
                   <div>
-                    <label className="block text-base font-semibold text-slate-700 mb-2">
+                    <label className="block text-base font-semibold text-slate-700 dark:text-gray-300 mb-2">
                       Last Name *
                     </label>
                     <div className="relative">
@@ -320,7 +320,7 @@ const Auth = ({ onAuthSuccess }) => {
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleChange}
-                        className="block w-full pl-12 pr-4 py-3 text-lg border-2 border-slate-300 rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors"
+                        className="block w-full pl-12 pr-4 py-3 text-lg border-2 border-slate-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors"
                         placeholder="Enter last name"
                         required={!isLogin}
                       />
@@ -329,7 +329,7 @@ const Auth = ({ onAuthSuccess }) => {
 
                   {/* Village */}
                   <div>
-                    <label className="block text-base font-semibold text-slate-700 mb-2">
+                    <label className="block text-base font-semibold text-slate-700 dark:text-gray-300 mb-2">
                       Village *
                     </label>
                     <div className="relative">
@@ -341,7 +341,7 @@ const Auth = ({ onAuthSuccess }) => {
                         name="village"
                         value={formData.village}
                         onChange={handleChange}
-                        className="block w-full pl-12 pr-4 py-3 text-lg border-2 border-slate-300 rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors"
+                        className="block w-full pl-12 pr-4 py-3 text-lg border-2 border-slate-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors"
                         placeholder="Enter your village name"
                         required={!isLogin}
                       />
@@ -350,14 +350,14 @@ const Auth = ({ onAuthSuccess }) => {
 
                   {/* Role Selection */}
                   <div>
-                    <label className="block text-base font-semibold text-slate-700 mb-2">
+                    <label className="block text-base font-semibold text-slate-700 dark:text-gray-300 mb-2">
                       Role *
                     </label>
                     <select
                       name="role"
                       value={formData.role}
                       onChange={handleChange}
-                      className="block w-full px-4 py-3 text-lg border-2 border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors"
+                      className="block w-full px-4 py-3 text-lg border-2 border-slate-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors"
                     >
                       <option value="farmer">Farmer</option>
                       <option value="operator">Operator</option>
@@ -370,7 +370,7 @@ const Auth = ({ onAuthSuccess }) => {
 
               {/* Mobile Number Field */}
               <div>
-                <label className="block text-base font-semibold text-slate-700 mb-3">
+                <label className="block text-base font-semibold text-slate-700 dark:text-gray-300 mb-3">
                   Mobile Number
                 </label>
                 <div className="relative">
@@ -378,7 +378,7 @@ const Auth = ({ onAuthSuccess }) => {
                     <Phone className="h-6 w-6 text-slate-400" />
                   </div>
                   <div className="absolute inset-y-0 left-12 flex items-center pointer-events-none">
-                    <span className="text-slate-600 text-lg font-medium">+91</span>
+                    <span className="text-slate-600 dark:text-gray-300 text-lg font-medium">+91</span>
                   </div>
                   <input
                     type="tel"
@@ -386,13 +386,13 @@ const Auth = ({ onAuthSuccess }) => {
                     value={formData.mobile}
                     onChange={handleChange}
                     maxLength="10"
-                    className="block w-full pl-24 pr-4 py-4 text-lg border-2 border-slate-300 rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors"
+                    className="block w-full pl-24 pr-4 py-4 text-lg border-2 border-slate-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors"
                     placeholder="Enter 10 digit number"
                     required
                     pattern="[0-9]{10}"
                   />
                 </div>
-                <p className="mt-2 text-sm text-slate-500">
+                <p className="mt-2 text-sm text-slate-500 dark:text-gray-400">
                   We'll send you a one-time password (OTP)
                 </p>
               </div>
@@ -413,7 +413,7 @@ const Auth = ({ onAuthSuccess }) => {
               <button
                 type="button"
                 onClick={handleBackToMobile}
-                className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors"
+                className="flex items-center gap-2 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white transition-colors"
               >
                 <ArrowLeft className="w-5 h-5" />
                 Change mobile number
@@ -421,8 +421,8 @@ const Auth = ({ onAuthSuccess }) => {
 
               {/* Mobile Number Display */}
               <div className="text-center">
-                <p className="text-slate-600 mb-2">OTP sent to</p>
-                <p className="text-xl font-bold text-slate-900">
+                <p className="text-slate-600 dark:text-gray-400 mb-2">OTP sent to</p>
+                <p className="text-xl font-bold text-slate-900 dark:text-white">
                   +91 {formData.mobile}
                 </p>
                 {displayOtp && (
@@ -434,7 +434,7 @@ const Auth = ({ onAuthSuccess }) => {
 
               {/* OTP Input */}
               <div>
-                <label className="block text-base font-semibold text-slate-700 mb-4 text-center">
+                <label className="block text-base font-semibold text-slate-700 dark:text-gray-300 mb-4 text-center">
                   Enter 6-Digit OTP
                 </label>
                 <div className="flex gap-2 justify-center">
@@ -448,7 +448,7 @@ const Auth = ({ onAuthSuccess }) => {
                       value={digit}
                       onChange={(e) => handleOtpChange(index, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                      className="w-12 h-14 text-center text-2xl font-bold border-2 border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors"
+                      className="w-12 h-14 text-center text-2xl font-bold border-2 border-slate-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors"
                     />
                   ))}
                 </div>
@@ -465,7 +465,7 @@ const Auth = ({ onAuthSuccess }) => {
                     Resend OTP
                   </button>
                 ) : (
-                  <p className="text-slate-500 text-base">
+                  <p className="text-slate-500 dark:text-gray-400 text-base">
                     Resend OTP in <span className="font-bold text-emerald-600">{otpTimer}s</span>
                   </p>
                 )}
@@ -486,7 +486,7 @@ const Auth = ({ onAuthSuccess }) => {
 
         {/* Footer - Only show on mobile step */}
         {step === 'mobile' && (
-          <p className="text-center text-base text-slate-600 mt-6">
+          <p className="text-center text-base text-slate-600 dark:text-gray-400 mt-6">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
               onClick={toggleMode}

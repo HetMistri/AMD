@@ -3,13 +3,12 @@ import React, { useState } from 'react';
 import { LogIn, Shield, Eye, EyeOff, AlertCircle, User, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { useTheme } from '../contexts/ThemeContext';
+import { ADMIN_CONFIG } from '../constants/config';
 
 const AdminAuth = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { isDark } = useTheme();
 
   const [formData, setFormData] = useState({
     username: '',
@@ -69,7 +68,7 @@ const AdminAuth = () => {
     } else {
       // Try API login as fallback
       try {
-        const response = await fetch('http://localhost:8000/api/v1/admin/login/', {
+        const response = await fetch(`${ADMIN_CONFIG.API_BASE_URL}/admin/login/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData),
@@ -90,7 +89,7 @@ const AdminAuth = () => {
         } else {
           setError(data.error || 'Invalid credentials. Please try again.');
         }
-      } catch (err) {
+      } catch {
         // If API fails, still allow static login
         setError('Invalid credentials. Use admin/admin123 for demo.');
       }
@@ -100,26 +99,26 @@ const AdminAuth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-xl shadow-emerald-500/25 mb-4">
             <Shield className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
             Admin Portal
           </h1>
-          <p className="text-slate-600">
+          <p className="text-slate-600 dark:text-gray-400">
             Gram Meter Administration Console
           </p>
         </div>
 
         {/* Auth Card */}
-        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 p-8">
           <div className="text-center mb-6">
-            <h2 className="text-xl font-semibold text-slate-900">Sign In</h2>
-            <p className="text-slate-600 text-sm mt-1">
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Sign In</h2>
+            <p className="text-slate-600 dark:text-gray-400 text-sm mt-1">
               Enter your admin credentials to continue
             </p>
           </div>
@@ -135,7 +134,7 @@ const AdminAuth = () => {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Username Field */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">
                 Username
               </label>
               <div className="relative">
@@ -147,7 +146,7 @@ const AdminAuth = () => {
                   name="username"
                   value={formData.username}
                   onChange={handleChange}
-                  className="w-full pl-12 pr-4 py-3 bg-white border-2 border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                  className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-700 border-2 border-slate-300 dark:border-gray-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                   placeholder="Enter username"
                   autoComplete="username"
                 />
@@ -156,7 +155,7 @@ const AdminAuth = () => {
 
             {/* Password Field */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">
                 Password
               </label>
               <div className="relative">
@@ -168,14 +167,14 @@ const AdminAuth = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full pl-12 pr-12 py-3 bg-white border-2 border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                  className="w-full pl-12 pr-12 py-3 bg-white dark:bg-gray-700 border-2 border-slate-300 dark:border-gray-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                   placeholder="Enter password"
                   autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-700 transition-colors"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-700 dark:hover:text-gray-200 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -203,11 +202,11 @@ const AdminAuth = () => {
           </form>
 
           {/* Demo Credentials Hint */}
-          <div className="mt-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
-            <p className="text-slate-700 text-sm text-center">
+          <div className="mt-6 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
+            <p className="text-slate-700 dark:text-gray-300 text-sm text-center">
               <span className="font-semibold">Demo Credentials:</span><br />
-              Username: <code className="bg-emerald-100 px-2 py-0.5 rounded">admin</code> | 
-              Password: <code className="bg-emerald-100 px-2 py-0.5 rounded">admin123</code>
+              Username: <code className="bg-emerald-100 dark:bg-emerald-800 px-2 py-0.5 rounded">admin</code> | 
+              Password: <code className="bg-emerald-100 dark:bg-emerald-800 px-2 py-0.5 rounded">admin123</code>
             </p>
           </div>
         </div>

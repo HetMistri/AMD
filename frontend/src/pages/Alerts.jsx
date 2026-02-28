@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   AlertTriangle, 
   AlertCircle, 
@@ -40,9 +40,15 @@ import {
 } from 'recharts';
 import api from '../services/api';
 import { useRealtimeAlerts } from '../hooks/useRealtimeData';
+import { useLanguage } from '../contexts/LanguageContext';
+import {
+  getDashboardAlertHistory,
+  removeDashboardAlertsFromHistory,
+  updateDashboardAlertStatus,
+} from '../services/alertHistory';
 
 // Priority badge component
-const PriorityBadge = ({ priority }) => {
+const PriorityBadge = ({ priority, t }) => {
   const config = {
     critical: { bg: 'bg-red-100', text: 'text-red-700', dot: 'bg-red-500' },
     high: { bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-500' },
@@ -55,13 +61,13 @@ const PriorityBadge = ({ priority }) => {
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${c.bg} ${c.text}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`}></span>
-      {priority.charAt(0).toUpperCase() + priority.slice(1)}
+      {t(priority)}
     </span>
   );
 };
 
 // Status badge component
-const StatusBadge = ({ status }) => {
+const StatusBadge = ({ status, t }) => {
   const config = {
     active: { bg: 'bg-red-100', text: 'text-red-700', icon: AlertTriangle },
     acknowledged: { bg: 'bg-yellow-100', text: 'text-yellow-700', icon: Eye },
@@ -74,7 +80,7 @@ const StatusBadge = ({ status }) => {
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${c.bg} ${c.text}`}>
       <Icon className="w-3 h-3" />
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {t(status)}
     </span>
   );
 };
@@ -95,7 +101,7 @@ const AlertTypeIcon = ({ type }) => {
 };
 
 // Alert Card Component
-const AlertCard = ({ alert, onAcknowledge, onResolve, selected, onSelect }) => {
+const AlertCard = ({ alert, onAcknowledge, onResolve, selected, onSelect, t }) => {
   const timeAgo = (date) => {
     const now = new Date();
     const alertDate = new Date(date);
@@ -104,13 +110,13 @@ const AlertCard = ({ alert, onAcknowledge, onResolve, selected, onSelect }) => {
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
     
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    return `${diffDays}d ago`;
+    if (diffMins < 60) return `${diffMins}${t('minuteAgoShort')}`;
+    if (diffHours < 24) return `${diffHours}${t('hourAgoShort')}`;
+    return `${diffDays}${t('dayAgoShort')}`;
   };
 
   return (
-    <div className={`bg-white rounded-xl p-5 shadow-sm border-l-4 transition-all
+    <div className={`bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border-l-4 transition-all
       ${alert.priority === 'critical' ? 'border-red-500' : 
         alert.priority === 'high' ? 'border-orange-500' : 
         alert.priority === 'medium' ? 'border-yellow-500' : 'border-blue-500'}
@@ -135,25 +141,25 @@ const AlertCard = ({ alert, onAcknowledge, onResolve, selected, onSelect }) => {
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <h4 className="font-semibold text-slate-900 truncate">
+              <h4 className="font-semibold text-slate-900 dark:text-white truncate">
                 {alert.title || alert.message || `${alert.alert_type || alert.type} Alert`}
               </h4>
-              <p className="text-sm text-slate-600 mt-1">
-                Meter: {alert.meter_name || alert.meter_id || 'Unknown'}
+              <p className="text-sm text-slate-600 dark:text-gray-400 mt-1">
+                {t('alertForMeter', { meter: alert.meter_name || alert.meter_id || t('unknown') })}
               </p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <PriorityBadge priority={alert.priority || 'medium'} />
-              <StatusBadge status={alert.status || 'active'} />
+              <PriorityBadge priority={alert.priority || 'medium'} t={t} />
+              <StatusBadge status={alert.status || 'active'} t={t} />
             </div>
           </div>
           
-          <p className="text-sm text-slate-700 mt-2 line-clamp-2">
-            {alert.description || alert.message || 'No description available'}
+          <p className="text-sm text-slate-700 dark:text-gray-300 mt-2 line-clamp-2">
+            {alert.description || alert.message || t('noDescriptionAvailable')}
           </p>
           
           <div className="flex items-center justify-between mt-4">
-            <div className="flex items-center gap-2 text-xs text-slate-500">
+            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-gray-400">
               <Clock className="w-3 h-3" />
               {timeAgo(alert.created_at || alert.timestamp)}
             </div>
@@ -165,7 +171,7 @@ const AlertCard = ({ alert, onAcknowledge, onResolve, selected, onSelect }) => {
                   className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-yellow-700 bg-yellow-100 rounded-lg hover:bg-yellow-200 transition-colors"
                 >
                   <Eye className="w-3 h-3" />
-                  Acknowledge
+                  {t('acknowledge')}
                 </button>
               )}
               {alert.status !== 'resolved' && (
@@ -174,7 +180,7 @@ const AlertCard = ({ alert, onAcknowledge, onResolve, selected, onSelect }) => {
                   className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors"
                 >
                   <CheckCircle className="w-3 h-3" />
-                  Resolve
+                  {t('resolved')}
                 </button>
               )}
             </div>
@@ -186,21 +192,21 @@ const AlertCard = ({ alert, onAcknowledge, onResolve, selected, onSelect }) => {
 };
 
 // Stats Card
-const StatsCard = ({ icon: Icon, label, value, change, color, bgColor }) => (
-  <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
+const StatsCard = ({ icon, label, value, change, color, bgColor, t }) => (
+  <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-slate-200 dark:border-gray-700">
     <div className="flex items-center justify-between">
       <div>
-        <p className="text-sm text-slate-600">{label}</p>
-        <p className="text-3xl font-bold text-slate-900 mt-1">{value}</p>
+        <p className="text-sm text-slate-600 dark:text-gray-400">{label}</p>
+        <p className="text-3xl font-bold text-slate-900 dark:text-white mt-1">{value}</p>
       </div>
       <div className={`p-3 rounded-xl ${bgColor}`}>
-        <Icon className={`w-6 h-6 ${color}`} />
+        {React.createElement(icon, { className: `w-6 h-6 ${color}` })}
       </div>
     </div>
     {change !== undefined && (
       <div className={`flex items-center gap-1 mt-2 text-sm ${change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
         {change >= 0 ? <TrendingDown className="w-4 h-4" /> : <TrendingUp className="w-4 h-4" />}
-        <span>{Math.abs(change)}% vs last week</span>
+        <span>{t('versusLastWeek', { value: Math.abs(change) })}</span>
       </div>
     )}
   </div>
@@ -208,8 +214,9 @@ const StatsCard = ({ icon: Icon, label, value, change, color, bgColor }) => (
 
 // Main Alerts Page
 const Alerts = () => {
+  const { t } = useLanguage();
   const [alerts, setAlerts] = useState([]);
-  const [filteredAlerts, setFilteredAlerts] = useState([]);
+  const [dashboardAlerts, setDashboardAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [selectedAlerts, setSelectedAlerts] = useState([]);
@@ -243,9 +250,30 @@ const Alerts = () => {
       setLoading(false);
     }
   };
+
+  const loadDashboardAlerts = () => {
+    const localHistory = getDashboardAlertHistory();
+    setDashboardAlerts(localHistory);
+  };
   
   // Use ONLY database alerts if available, fallback to simulated only if empty
-  const displayAlerts = alerts.length > 0 ? alerts : realtimeAlerts.slice(0, 20);
+  const displayAlerts = useMemo(() => {
+    const baseAlerts = alerts.length > 0 ? alerts : realtimeAlerts.slice(0, 20);
+    const merged = [...dashboardAlerts, ...baseAlerts];
+    const seen = new Set();
+
+    return merged
+      .filter((item) => {
+        if (!item?.id || seen.has(item.id)) return false;
+        seen.add(item.id);
+        return true;
+      })
+      .sort((a, b) => {
+        const aTime = new Date(a.created_at || a.timestamp || 0).getTime();
+        const bTime = new Date(b.created_at || b.timestamp || 0).getTime();
+        return bTime - aTime;
+      });
+  }, [alerts, realtimeAlerts, dashboardAlerts]);
 
   // Fetch stats
   const fetchStats = async () => {
@@ -260,35 +288,43 @@ const Alerts = () => {
   useEffect(() => {
     fetchAlerts();
     fetchStats();
+    loadDashboardAlerts();
   }, []);
 
-  // Apply filters
-  useEffect(() => {
+  const filteredAlerts = useMemo(() => {
     let filtered = [...displayAlerts];
-    
+
     if (searchQuery) {
-      filtered = filtered.filter(a => 
+      filtered = filtered.filter(a =>
         (a.title || a.message || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (a.meter_name || a.meter_id || '').toString().toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-    
+
     if (filters.status !== 'all') {
       filtered = filtered.filter(a => a.status === filters.status);
     }
-    
+
     if (filters.priority !== 'all') {
       filtered = filtered.filter(a => a.priority === filters.priority);
     }
-    
+
     if (filters.type !== 'all') {
       filtered = filtered.filter(a => (a.alert_type || a.type) === filters.type);
     }
-    
-    setFilteredAlerts(filtered);
+
+    return filtered;
   }, [searchQuery, filters, displayAlerts]);
 
   const handleAcknowledge = async (alertId) => {
+    if (String(alertId).startsWith('local-')) {
+      updateDashboardAlertStatus(alertId, 'acknowledged');
+      setDashboardAlerts((prev) =>
+        prev.map((a) => (a.id === alertId ? { ...a, status: 'acknowledged' } : a))
+      );
+      return;
+    }
+
     // First try realtime alert
     ackRealtimeAlert(alertId);
     try {
@@ -300,6 +336,14 @@ const Alerts = () => {
   };
 
   const handleResolve = async (alertId) => {
+    if (String(alertId).startsWith('local-')) {
+      updateDashboardAlertStatus(alertId, 'resolved');
+      setDashboardAlerts((prev) =>
+        prev.map((a) => (a.id === alertId ? { ...a, status: 'resolved' } : a))
+      );
+      return;
+    }
+
     // First try realtime alert
     resolveRealtimeAlert(alertId);
     try {
@@ -311,12 +355,49 @@ const Alerts = () => {
   };
 
   const handleBulkAcknowledge = async () => {
+    const localIds = selectedAlerts.filter((id) => String(id).startsWith('local-'));
+    const remoteIds = selectedAlerts.filter((id) => !String(id).startsWith('local-'));
+
     try {
-      await api.bulkAcknowledgeAlerts(selectedAlerts);
-      setAlerts(alerts.map(a => selectedAlerts.includes(a.id) ? { ...a, status: 'acknowledged' } : a));
+      if (localIds.length > 0) {
+        localIds.forEach((id) => updateDashboardAlertStatus(id, 'acknowledged'));
+        setDashboardAlerts((prev) =>
+          prev.map((a) => (localIds.includes(a.id) ? { ...a, status: 'acknowledged' } : a))
+        );
+      }
+
+      if (remoteIds.length > 0) {
+        await api.bulkAcknowledgeAlerts(remoteIds);
+        setAlerts((prev) =>
+          prev.map((a) => (remoteIds.includes(a.id) ? { ...a, status: 'acknowledged' } : a))
+        );
+      }
+
       setSelectedAlerts([]);
     } catch (err) {
       console.error('Failed to bulk acknowledge:', err);
+    }
+  };
+
+  const handleBulkClear = () => {
+    const localIds = selectedAlerts.filter((id) => String(id).startsWith('local-'));
+    const remoteIds = selectedAlerts.filter((id) => !String(id).startsWith('local-'));
+
+    try {
+      // Handle local dashboard alerts
+      if (localIds.length > 0) {
+        removeDashboardAlertsFromHistory(localIds);
+        setDashboardAlerts((prev) => prev.filter((a) => !localIds.includes(a.id)));
+      }
+
+      // Handle remote API alerts - actually remove them instead of just hiding
+      if (remoteIds.length > 0) {
+        setAlerts((prev) => prev.filter((a) => !remoteIds.includes(a.id)));
+      }
+
+      setSelectedAlerts([]);
+    } catch (err) {
+      console.error('Failed to bulk clear alerts:', err);
     }
   };
 
@@ -334,58 +415,58 @@ const Alerts = () => {
     }
   };
 
-  // Calculate stats from alerts if API stats not available
-  const alertStats = stats || {
-    total: alerts.length,
-    active: alerts.filter(a => a.status === 'active').length,
-    acknowledged: alerts.filter(a => a.status === 'acknowledged').length,
-    resolved: alerts.filter(a => a.status === 'resolved').length,
-    critical: alerts.filter(a => a.priority === 'critical').length,
-  };
+  // Calculate stats from live alert data (always recalculate to stay in sync)
+  const alertStats = useMemo(() => ({
+    total: displayAlerts.length,
+    active: displayAlerts.filter(a => a.status === 'active').length,
+    acknowledged: displayAlerts.filter(a => a.status === 'acknowledged').length,
+    resolved: displayAlerts.filter(a => a.status === 'resolved').length,
+    critical: displayAlerts.filter(a => a.priority === 'critical').length,
+  }), [displayAlerts]);
 
   // Chart data
   const priorityChartData = [
-    { name: 'Critical', value: alerts.filter(a => a.priority === 'critical').length, color: '#EF4444' },
-    { name: 'High', value: alerts.filter(a => a.priority === 'high').length, color: '#F97316' },
-    { name: 'Medium', value: alerts.filter(a => a.priority === 'medium').length, color: '#EAB308' },
-    { name: 'Low', value: alerts.filter(a => a.priority === 'low').length, color: '#3B82F6' },
+    { name: t('critical'), value: displayAlerts.filter(a => a.priority === 'critical').length, color: '#EF4444' },
+    { name: t('high'), value: displayAlerts.filter(a => a.priority === 'high').length, color: '#F97316' },
+    { name: t('medium'), value: displayAlerts.filter(a => a.priority === 'medium').length, color: '#EAB308' },
+    { name: t('low'), value: displayAlerts.filter(a => a.priority === 'low').length, color: '#3B82F6' },
   ].filter(d => d.value > 0);
 
   const statusChartData = [
-    { name: 'Active', value: alertStats.active, color: '#EF4444' },
-    { name: 'Acknowledged', value: alertStats.acknowledged, color: '#EAB308' },
-    { name: 'Resolved', value: alertStats.resolved, color: '#22C55E' },
+    { name: t('active'), value: alertStats.active, color: '#EF4444' },
+    { name: t('acknowledged'), value: alertStats.acknowledged, color: '#EAB308' },
+    { name: t('resolved'), value: alertStats.resolved, color: '#22C55E' },
   ].filter(d => d.value > 0);
 
   // Alert types for filter
-  const alertTypes = [...new Set(alerts.map(a => a.alert_type || a.type).filter(Boolean))];
+  const alertTypes = [...new Set(displayAlerts.map(a => a.alert_type || a.type).filter(Boolean))];
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <RefreshCw className="w-12 h-12 mx-auto text-emerald-500 animate-spin mb-4" />
-          <p className="text-slate-600">Loading alerts...</p>
+          <p className="text-slate-600 dark:text-gray-400">{t('loadingAlerts')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white p-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Alert Center</h1>
-            <p className="text-slate-600">Monitor and manage system alerts</p>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('alertCenterTitle')}</h1>
+            <p className="text-slate-600 dark:text-gray-400">{t('alertCenterSubtitle')}</p>
           </div>
           <button 
             onClick={() => { fetchAlerts(); fetchStats(); }}
             className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
           >
             <RefreshCw className="w-4 h-4" />
-            Refresh
+            {t('refresh')}
           </button>
         </div>
 
@@ -393,40 +474,45 @@ const Alerts = () => {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
           <StatsCard 
             icon={Bell} 
-            label="Total Alerts" 
+            label={t('totalAlerts')} 
             value={alertStats.total} 
             bgColor="bg-emerald-100"
             color="text-emerald-600"
+            t={t}
           />
           <StatsCard 
             icon={AlertTriangle} 
-            label="Active" 
+            label={t('active')} 
             value={alertStats.active}
             change={-12}
             bgColor="bg-red-100"
             color="text-red-600"
+            t={t}
           />
           <StatsCard 
             icon={Eye} 
-            label="Acknowledged" 
+            label={t('acknowledged')} 
             value={alertStats.acknowledged}
             bgColor="bg-yellow-100"
             color="text-yellow-600"
+            t={t}
           />
           <StatsCard 
             icon={CheckCircle} 
-            label="Resolved" 
+            label={t('resolved')} 
             value={alertStats.resolved}
             change={8}
             bgColor="bg-green-100"
             color="text-green-600"
+            t={t}
           />
           <StatsCard 
             icon={AlertCircle} 
-            label="Critical" 
+            label={t('critical')} 
             value={alertStats.critical}
             bgColor="bg-orange-100"
             color="text-orange-600"
+            t={t}
           />
         </div>
 
@@ -434,24 +520,24 @@ const Alerts = () => {
           {/* Alerts List */}
           <div className="lg:col-span-2 space-y-4">
             {/* Search and Filter Bar */}
-            <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-slate-200 dark:border-gray-700">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Search alerts..."
+                    placeholder={t('searchPlaceholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-slate-900"
+                    className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 border border-slate-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-slate-900 dark:text-white"
                   />
                 </div>
                 <button 
                   onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg text-slate-700 hover:bg-gray-200 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-slate-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   <Filter className="w-4 h-4" />
-                  Filters
+                  {t('filters')}
                   <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
                 </button>
               </div>
@@ -460,41 +546,41 @@ const Alerts = () => {
               {showFilters && (
                 <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-slate-200">
                   <div>
-                    <label className="block text-xs text-slate-600 mb-1">Status</label>
+                    <label className="block text-xs text-slate-600 mb-1">{t('statusLabel')}</label>
                     <select
                       value={filters.status}
                       onChange={(e) => setFilters({ ...filters, status: e.target.value })}
                       className="px-3 py-2 bg-gray-50 border border-slate-300 rounded-lg text-sm text-slate-700"
                     >
-                      <option value="all">All Status</option>
-                      <option value="active">Active</option>
-                      <option value="acknowledged">Acknowledged</option>
-                      <option value="resolved">Resolved</option>
+                      <option value="all">{t('allStatus')}</option>
+                      <option value="active">{t('active')}</option>
+                      <option value="acknowledged">{t('acknowledged')}</option>
+                      <option value="resolved">{t('resolved')}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-600 mb-1">Priority</label>
+                    <label className="block text-xs text-slate-600 mb-1">{t('priorityLabel')}</label>
                     <select
                       value={filters.priority}
                       onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
                       className="px-3 py-2 bg-gray-50 border border-slate-300 rounded-lg text-sm text-slate-700"
                     >
-                      <option value="all">All Priorities</option>
-                      <option value="critical">Critical</option>
-                      <option value="high">High</option>
-                      <option value="medium">Medium</option>
-                      <option value="low">Low</option>
+                      <option value="all">{t('allPriorities')}</option>
+                      <option value="critical">{t('critical')}</option>
+                      <option value="high">{t('high')}</option>
+                      <option value="medium">{t('medium')}</option>
+                      <option value="low">{t('low')}</option>
                     </select>
                   </div>
                   {alertTypes.length > 0 && (
                     <div>
-                      <label className="block text-xs text-slate-600 mb-1">Type</label>
+                      <label className="block text-xs text-slate-600 mb-1">{t('typeLabel')}</label>
                       <select
                         value={filters.type}
                         onChange={(e) => setFilters({ ...filters, type: e.target.value })}
                         className="px-3 py-2 bg-gray-50 border border-slate-300 rounded-lg text-sm text-slate-700"
                       >
-                        <option value="all">All Types</option>
+                        <option value="all">{t('allTypes')}</option>
                         {alertTypes.map(type => (
                           <option key={type} value={type}>{type}</option>
                         ))}
@@ -509,7 +595,7 @@ const Alerts = () => {
             {selectedAlerts.length > 0 && (
               <div className="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-4 flex items-center justify-between">
                 <span className="text-sm text-blue-700 dark:text-blue-400">
-                  {selectedAlerts.length} alert{selectedAlerts.length > 1 ? 's' : ''} selected
+                  {t('alertSelectedCount', { count: selectedAlerts.length })}
                 </span>
                 <div className="flex items-center gap-2">
                   <button
@@ -517,14 +603,14 @@ const Alerts = () => {
                     className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-yellow-700 bg-yellow-100 rounded-lg hover:bg-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-400 transition-colors"
                   >
                     <Eye className="w-4 h-4" />
-                    Acknowledge All
+                    {t('acknowledgeAll')}
                   </button>
                   <button
-                    onClick={() => setSelectedAlerts([])}
+                    onClick={handleBulkClear}
                     className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 transition-colors"
                   >
                     <X className="w-4 h-4" />
-                    Clear
+                    {t('clear')}
                   </button>
                 </div>
               </div>
@@ -539,10 +625,10 @@ const Alerts = () => {
                   onChange={handleSelectAll}
                   className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                 />
-                Select All
+                {t('selectAll')}
               </label>
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                {filteredAlerts.length} alert{filteredAlerts.length !== 1 ? 's' : ''}
+                {t('alertTotalCount', { count: filteredAlerts.length })}
               </span>
             </div>
 
@@ -550,11 +636,11 @@ const Alerts = () => {
             {filteredAlerts.length === 0 ? (
               <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm text-center">
                 <BellOff className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-                <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">No Alerts Found</h3>
+                <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">{t('noAlertsFound')}</h3>
                 <p className="text-gray-500 dark:text-gray-400 mt-2">
                   {searchQuery || filters.status !== 'all' || filters.priority !== 'all' 
-                    ? 'Try adjusting your filters' 
-                    : 'All systems are running smoothly'}
+                    ? t('tryAdjustingFilters') 
+                    : t('systemsRunningSmoothly')}
                 </p>
               </div>
             ) : (
@@ -567,6 +653,7 @@ const Alerts = () => {
                     onResolve={handleResolve}
                     selected={selectedAlerts.includes(alert.id)}
                     onSelect={handleSelectAlert}
+                    t={t}
                   />
                 ))}
               </div>
@@ -579,7 +666,7 @@ const Alerts = () => {
             <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <PieChartIcon className="w-5 h-5 text-gray-500" />
-                By Priority
+                {t('byPriority')}
               </h3>
               {priorityChartData.length > 0 ? (
                 <div className="h-48">
@@ -606,7 +693,7 @@ const Alerts = () => {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="text-center text-gray-500 dark:text-gray-400 py-8">No data</p>
+                <p className="text-center text-gray-500 dark:text-gray-400 py-8">{t('noData')}</p>
               )}
               <div className="grid grid-cols-2 gap-2 mt-4">
                 {priorityChartData.map((item) => (
@@ -622,7 +709,7 @@ const Alerts = () => {
             <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-gray-500" />
-                By Status
+                {t('byStatus')}
               </h3>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
@@ -632,7 +719,7 @@ const Alerts = () => {
                     <YAxis type="category" dataKey="name" stroke="#9CA3AF" fontSize={12} width={80} />
                     <Tooltip 
                       contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px' }}
-                      formatter={(value) => [value, 'Count']}
+                      formatter={(value) => [value, t('count')]}
                     />
                     <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                       {statusChartData.map((entry, index) => (
@@ -646,28 +733,28 @@ const Alerts = () => {
 
             {/* Quick Actions */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('quickActions')}</h3>
               <div className="space-y-2">
                 <button 
                   onClick={() => setFilters({ status: 'active', priority: 'critical', type: 'all' })}
                   className="w-full flex items-center gap-3 px-4 py-3 bg-red-50 dark:bg-red-900/20 rounded-lg text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
                 >
                   <AlertTriangle className="w-5 h-5" />
-                  View Critical Alerts
+                  {t('viewCriticalAlerts')}
                 </button>
                 <button 
                   onClick={() => setFilters({ status: 'active', priority: 'all', type: 'all' })}
                   className="w-full flex items-center gap-3 px-4 py-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg text-yellow-700 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors"
                 >
                   <Bell className="w-5 h-5" />
-                  View Active Alerts
+                  {t('viewActiveAlerts')}
                 </button>
                 <button 
                   onClick={() => setFilters({ status: 'all', priority: 'all', type: 'all' })}
                   className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                 >
                   <RefreshCw className="w-5 h-5" />
-                  Clear Filters
+                  {t('clearFilters')}
                 </button>
               </div>
             </div>
