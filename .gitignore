@@ -32,6 +32,15 @@ env/
 
 # Django/local database
 backend/db.sqlite3
+*.sqlite3
+
+# Runtime process metadata
+.pids/
+*.pid
+
+# Django generated runtime assets
+backend/staticfiles/
+backend/media/
 
 # Frontend build output
 dist/
