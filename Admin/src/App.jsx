@@ -183,7 +183,7 @@ function AdminLogin({ onLogin }) {
 // Dashboard Component
 function AdminDashboard({ user, onLogout }) {
   return (
-    <div style={{height:'100vh', display:'flex', flexDirection:'column', background:'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}}>
+    <div style={{minHeight:'100vh', display:'flex', flexDirection:'column', background:'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}}>
       <div style={{padding:'15px 20px', color:'white', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
         <div>
           <h1 style={{margin:'0 0 5px 0', fontSize:'1.8rem'}}>🏘️ Village Grid Live Monitor</h1>
@@ -210,7 +210,7 @@ function AdminDashboard({ user, onLogout }) {
         </div>
       </div>
       
-      <div style={{flex:1, margin:'0 20px 20px 20px', borderRadius:'12px', overflow:'hidden', boxShadow:'0 10px 30px rgba(0,0,0,0.3)'}}>
+      <div style={{height:'calc(100vh - 230px)', minHeight:'420px', margin:'0 20px 20px 20px', borderRadius:'12px', overflow:'hidden', boxShadow:'0 10px 30px rgba(0,0,0,0.3)'}}>
         <VillageLiveMap />
       </div>
 

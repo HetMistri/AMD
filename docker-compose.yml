@@ -24,6 +24,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       ML_GATEWAY_URL: http://ml-gateway:8001
+      CORS_ALLOWED_ORIGINS: http://localhost,http://localhost:5173,http://localhost:3000
     depends_on:
       redis:
         condition: service_healthy
@@ -61,17 +62,6 @@ services:
     container_name: gram-meter-frontend
     ports:
       - "80:80"
-    depends_on:
-      - backend
-    restart: unless-stopped
-
-  admin-console:
-    build:
-      context: .
-      dockerfile: docker/admin-console.Dockerfile
-    container_name: gram-meter-admin-console
-    ports:
-      - "8080:80"
     depends_on:
       - backend
     restart: unless-stopped

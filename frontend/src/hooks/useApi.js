@@ -1,10 +1,10 @@
 // Custom hooks for Gram Meter - Real API Integration
-import { useState, useEffect, useCallback } from 'react';
-import apiService from '../services/api';
-import authService from '../services/authService';
-import { POLLING_CONFIG } from '../constants/config';
-import { isOnline } from '../utils/helpers';
-import toast from 'react-hot-toast';
+import { useState, useEffect, useCallback } from "react";
+import apiService from "../services/api";
+import authService from "../services/authService";
+import { POLLING_CONFIG } from "../constants/config";
+import { isOnline } from "../utils/helpers";
+import toast from "react-hot-toast";
 
 /**
  * Hook for authentication state management
@@ -20,28 +20,28 @@ export const useAuth = () => {
     try {
       const result = await authService.loginVerify(mobile, otp);
       setUser(result.user);
-      toast.success('Logged in successfully!');
+      toast.success("Logged in successfully!");
       return result;
     } catch (err) {
       setError(err.message);
-      toast.error(err.message || 'Login failed');
+      toast.error(err.message || "Login failed");
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  const signup = async (mobile, otp, name, role = 'farmer') => {
+  const signup = async (mobile, otp, name, role = "farmer") => {
     setLoading(true);
     setError(null);
     try {
       const result = await authService.signupVerify(mobile, otp);
       setUser(result.user);
-      toast.success('Account created successfully!');
+      toast.success("Account created successfully!");
       return result;
     } catch (err) {
       setError(err.message);
-      toast.error(err.message || 'Signup failed');
+      toast.error(err.message || "Signup failed");
       throw err;
     } finally {
       setLoading(false);
@@ -53,10 +53,10 @@ export const useAuth = () => {
     try {
       await authService.logout();
       setUser(null);
-      toast.success('Logged out successfully');
+      toast.success("Logged out successfully");
     } catch (err) {
-      console.error('Logout error:', err);
-      toast.error('Logout failed');
+      console.error("Logout error:", err);
+      toast.error("Logout failed");
     } finally {
       setLoading(false);
     }
@@ -88,17 +88,17 @@ export const useDashboardData = () => {
       setData(dashboardData);
       setIsOffline(dashboardData.isOffline || false);
       setError(null);
-      
-      if (dashboardData.isOffline && !toast.isActive('offline-warning')) {
-        toast.error('You\'re offline. Showing cached data.', {
-          id: 'offline-warning',
+
+      if (dashboardData.isOffline && !toast.isActive("offline-warning")) {
+        toast.error("You're offline. Showing cached data.", {
+          id: "offline-warning",
           duration: 3000,
         });
       }
     } catch (err) {
       setError(err.message);
-      console.error('Error in useDashboardData:', err);
-      toast.error('Failed to load dashboard data');
+      console.error("Error in useDashboardData:", err);
+      toast.error("Failed to load dashboard data");
     } finally {
       setLoading(false);
     }
@@ -118,21 +118,21 @@ export const useDashboardData = () => {
     const handleOnline = () => {
       setIsOffline(false);
       fetchData();
-      toast.success('Back online!', { duration: 2000 });
+      toast.success("Back online!", { duration: 2000 });
     };
 
     const handleOffline = () => {
       setIsOffline(true);
-      toast.error('You\'re offline. Showing cached data.', { duration: 3000 });
+      toast.error("You're offline. Showing cached data.", { duration: 3000 });
     };
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     return () => {
       if (interval) clearInterval(interval);
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
     };
   }, [fetchData]);
 
@@ -150,7 +150,7 @@ export const useMeterData = (meterId) => {
 
   const fetchData = useCallback(async () => {
     if (!meterId) return;
-    
+
     try {
       const [meterData, status] = await Promise.all([
         apiService.getMeter(meterId),
@@ -161,7 +161,7 @@ export const useMeterData = (meterId) => {
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error('Error in useMeterData:', err);
+      console.error("Error in useMeterData:", err);
     } finally {
       setLoading(false);
     }
@@ -178,7 +178,6 @@ export const useMeterData = (meterId) => {
   return { data, liveStatus, loading, error, refetch: fetchData };
 };
 
-
 /**
  * Hook for fetching alerts with acknowledge/resolve actions
  */
@@ -194,7 +193,7 @@ export const useAlerts = (params = {}) => {
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error('Error in useAlerts:', err);
+      console.error("Error in useAlerts:", err);
     } finally {
       setLoading(false);
     }
@@ -211,13 +210,21 @@ export const useAlerts = (params = {}) => {
   const acknowledgeAlert = async (alertId) => {
     try {
       await apiService.acknowledgeAlert(alertId);
-      setAlerts(prev => prev.map(alert => 
-        alert.id === alertId ? { ...alert, acknowledged: true, acknowledged_at: new Date().toISOString() } : alert
-      ));
-      toast.success('Alert acknowledged', { duration: 2000 });
+      setAlerts((prev) =>
+        prev.map((alert) =>
+          alert.id === alertId
+            ? {
+                ...alert,
+                acknowledged: true,
+                acknowledged_at: new Date().toISOString(),
+              }
+            : alert,
+        ),
+      );
+      toast.success("Alert acknowledged", { duration: 2000 });
     } catch (error) {
-      console.error('Failed to acknowledge alert:', error);
-      toast.error('Failed to acknowledge alert', { duration: 2000 });
+      console.error("Failed to acknowledge alert:", error);
+      toast.error("Failed to acknowledge alert", { duration: 2000 });
       throw error;
     }
   };
@@ -225,18 +232,33 @@ export const useAlerts = (params = {}) => {
   const resolveAlert = async (alertId) => {
     try {
       await apiService.resolveAlert(alertId);
-      setAlerts(prev => prev.map(alert => 
-        alert.id === alertId ? { ...alert, resolved: true, resolved_at: new Date().toISOString() } : alert
-      ));
-      toast.success('Alert resolved', { duration: 2000 });
+      setAlerts((prev) =>
+        prev.map((alert) =>
+          alert.id === alertId
+            ? {
+                ...alert,
+                resolved: true,
+                resolved_at: new Date().toISOString(),
+              }
+            : alert,
+        ),
+      );
+      toast.success("Alert resolved", { duration: 2000 });
     } catch (error) {
-      console.error('Failed to resolve alert:', error);
-      toast.error('Failed to resolve alert', { duration: 2000 });
+      console.error("Failed to resolve alert:", error);
+      toast.error("Failed to resolve alert", { duration: 2000 });
       throw error;
     }
   };
 
-  return { alerts, loading, error, refetch: fetchAlerts, acknowledgeAlert, resolveAlert };
+  return {
+    alerts,
+    loading,
+    error,
+    refetch: fetchAlerts,
+    acknowledgeAlert,
+    resolveAlert,
+  };
 };
 
 /**
@@ -253,7 +275,7 @@ export const useAnalytics = () => {
       return data;
     } catch (err) {
       setError(err.message);
-      toast.error('Failed to load consumption trends');
+      toast.error("Failed to load consumption trends");
       throw err;
     } finally {
       setLoading(false);
@@ -267,7 +289,7 @@ export const useAnalytics = () => {
       return data;
     } catch (err) {
       setError(err.message);
-      toast.error('Failed to load efficiency analysis');
+      toast.error("Failed to load efficiency analysis");
       throw err;
     } finally {
       setLoading(false);
@@ -281,7 +303,7 @@ export const useAnalytics = () => {
       return data;
     } catch (err) {
       setError(err.message);
-      toast.error('Failed to load cost projection');
+      toast.error("Failed to load cost projection");
       throw err;
     } finally {
       setLoading(false);
@@ -295,7 +317,7 @@ export const useAnalytics = () => {
       return data;
     } catch (err) {
       setError(err.message);
-      toast.error('Failed to load carbon footprint');
+      toast.error("Failed to load carbon footprint");
       throw err;
     } finally {
       setLoading(false);
@@ -309,7 +331,7 @@ export const useAnalytics = () => {
       return data;
     } catch (err) {
       setError(err.message);
-      toast.error('Failed to predict consumption');
+      toast.error("Failed to predict consumption");
       throw err;
     } finally {
       setLoading(false);
@@ -335,27 +357,28 @@ export const useSimulateAlert = () => {
 
   const simulateAlert = async (alertData) => {
     setSending(true);
-    
+
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       const result = {
-        to: '+91 98765 43210',
-        message: alertData.message || 'Alert: Voltage Spike detected on Phase 1.',
+        to: "+91 98765 43210",
+        message:
+          alertData.message || "Alert: Voltage Spike detected on Phase 1.",
         timestamp: new Date().toISOString(),
-        status: 'sent',
-        channel: 'whatsapp',
+        status: "sent",
+        channel: "whatsapp",
       };
-      
+
       toast.success(
         `WhatsApp alert sent successfully!\n\nTo: ${result.to}\nMessage: ${result.message}`,
-        { duration: 5000 }
+        { duration: 5000 },
       );
-      
+
       return result;
     } catch (err) {
-      toast.error('Failed to send WhatsApp alert', { duration: 3000 });
+      toast.error("Failed to send WhatsApp alert", { duration: 3000 });
       throw err;
     } finally {
       setSending(false);
@@ -374,7 +397,7 @@ export const useLivePower = (initialPower = 1.8) => {
   useEffect(() => {
     const interval = setInterval(() => {
       // Simulate fluctuating power usage
-      setPower(prev => {
+      setPower((prev) => {
         const variation = (Math.random() - 0.5) * 0.4;
         const newPower = prev + variation;
         return Math.max(1.0, Math.min(3.5, newPower));
@@ -397,12 +420,12 @@ export const useNetworkStatus = () => {
     const handleOnline = () => setOnline(true);
     const handleOffline = () => setOnline(false);
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
     };
   }, []);
 

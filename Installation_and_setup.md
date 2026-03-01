@@ -61,8 +61,8 @@ docker compose --env-file .env.docker up --build -d
 
 3. Open apps:
 
-- Frontend: http://localhost:5173
-- Standalone Admin Console: http://localhost:5174
+- Frontend: http://localhost/
+- Admin Console: http://localhost/admin
 - Backend API: http://localhost:8000/api/v1/
 - ML Gateway Docs: http://localhost:8001/docs
 

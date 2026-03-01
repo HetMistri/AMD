@@ -1,6 +1,6 @@
 // Authentication Service for Mobile OTP-based Authentication
-import { API_CONFIG } from '../constants/config';
-import storageService from './storage';
+import { API_CONFIG } from "../constants/config";
+import storageService from "./storage";
 
 class AuthService {
   constructor() {
@@ -13,8 +13,8 @@ class AuthService {
   getHeaders() {
     const token = storageService.getToken();
     return {
-      'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` }),
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
     };
   }
 
@@ -34,12 +34,16 @@ class AuthService {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || data.message || `HTTP error! status: ${response.status}`);
+        throw new Error(
+          data.error ||
+            data.message ||
+            `HTTP error! status: ${response.status}`,
+        );
       }
 
       return data;
     } catch (error) {
-      console.error('Auth request error:', error);
+      console.error("Auth request error:", error);
       throw error;
     }
   }
@@ -47,16 +51,16 @@ class AuthService {
   /**
    * Request signup OTP
    * POST /api/v1/auth/signup/request/
-   * 
+   *
    * Backend expects: mobile_number, first_name, last_name, village, role
    */
-  async signupRequest(mobile, firstName, lastName, village, role = 'farmer') {
+  async signupRequest(mobile, firstName, lastName, village, role = "farmer") {
     try {
       // Format mobile number with country code if not present
-      const formattedMobile = mobile.startsWith('+') ? mobile : `+91${mobile}`;
-      
-      const response = await this.request('/auth/signup/request/', {
-        method: 'POST',
+      const formattedMobile = mobile.startsWith("+") ? mobile : `+91${mobile}`;
+
+      const response = await this.request("/auth/signup/request/", {
+        method: "POST",
         body: JSON.stringify({
           mobile_number: formattedMobile,
           first_name: firstName,
@@ -68,23 +72,23 @@ class AuthService {
 
       return response;
     } catch (error) {
-      throw new Error(error.message || 'Failed to send OTP');
+      throw new Error(error.message || "Failed to send OTP");
     }
   }
 
   /**
    * Verify signup OTP and create account
    * POST /api/v1/auth/signup/verify/
-   * 
+   *
    * Backend expects: mobile_number, otp
    */
   async signupVerify(mobile, otp) {
     try {
       // Format mobile number with country code if not present
-      const formattedMobile = mobile.startsWith('+') ? mobile : `+91${mobile}`;
-      
-      const response = await this.request('/auth/signup/verify/', {
-        method: 'POST',
+      const formattedMobile = mobile.startsWith("+") ? mobile : `+91${mobile}`;
+
+      const response = await this.request("/auth/signup/verify/", {
+        method: "POST",
         body: JSON.stringify({
           mobile_number: formattedMobile,
           otp: otp,
@@ -117,30 +121,32 @@ class AuthService {
 
       return {
         ...response,
-        user: response.user ? {
-          ...response.user,
-          name: `${response.user.first_name} ${response.user.last_name}`.trim(),
-        } : null,
+        user: response.user
+          ? {
+              ...response.user,
+              name: `${response.user.first_name} ${response.user.last_name}`.trim(),
+            }
+          : null,
       };
     } catch (error) {
-      throw new Error(error.message || 'Invalid OTP');
+      throw new Error(error.message || "Invalid OTP");
     }
   }
 
   /**
    * Request login OTP
    * POST /api/v1/auth/login/request/
-   * 
+   *
    * Backend expects: mobile_number
    * Backend returns: user_id (needed for verify step)
    */
   async loginRequest(mobile) {
     try {
       // Format mobile number with country code if not present
-      const formattedMobile = mobile.startsWith('+') ? mobile : `+91${mobile}`;
-      
-      const response = await this.request('/auth/login/request/', {
-        method: 'POST',
+      const formattedMobile = mobile.startsWith("+") ? mobile : `+91${mobile}`;
+
+      const response = await this.request("/auth/login/request/", {
+        method: "POST",
         body: JSON.stringify({
           mobile_number: formattedMobile,
         }),
@@ -148,32 +154,32 @@ class AuthService {
 
       // Store user_id for the verify step
       if (response.user_id) {
-        storageService.set('pending_login_user_id', response.user_id);
+        storageService.set("pending_login_user_id", response.user_id);
       }
 
       return response;
     } catch (error) {
-      throw new Error(error.message || 'Failed to send OTP');
+      throw new Error(error.message || "Failed to send OTP");
     }
   }
 
   /**
    * Verify login OTP
    * POST /api/v1/auth/login/verify/
-   * 
+   *
    * Backend expects: user_id, otp (NOT mobile!)
    */
   async loginVerify(mobile, otp) {
     try {
       // Get the user_id stored from loginRequest
-      const userId = storageService.get('pending_login_user_id');
-      
+      const userId = storageService.get("pending_login_user_id");
+
       if (!userId) {
-        throw new Error('Login session expired. Please request OTP again.');
+        throw new Error("Login session expired. Please request OTP again.");
       }
-      
-      const response = await this.request('/auth/login/verify/', {
-        method: 'POST',
+
+      const response = await this.request("/auth/login/verify/", {
+        method: "POST",
         body: JSON.stringify({
           user_id: userId,
           otp: otp,
@@ -181,7 +187,7 @@ class AuthService {
       });
 
       // Clear pending login user_id
-      storageService.remove('pending_login_user_id');
+      storageService.remove("pending_login_user_id");
 
       // Store tokens - backend returns tokens.access and tokens.refresh
       if (response.tokens?.access) {
@@ -209,37 +215,40 @@ class AuthService {
 
       return {
         ...response,
-        user: response.user ? {
-          ...response.user,
-          name: `${response.user.first_name} ${response.user.last_name}`.trim(),
-        } : null,
+        user: response.user
+          ? {
+              ...response.user,
+              name: `${response.user.first_name} ${response.user.last_name}`.trim(),
+            }
+          : null,
       };
     } catch (error) {
-      throw new Error(error.message || 'Invalid OTP');
+      throw new Error(error.message || "Invalid OTP");
     }
   }
 
   /**
    * Resend OTP
    * POST /api/v1/auth/otp/resend/
-   * 
+   *
    * Backend expects: mobile_number
    */
-  async resendOTP(mobile) {
+  async resendOTP(mobile, purpose = "login") {
     try {
       // Format mobile number with country code if not present
-      const formattedMobile = mobile.startsWith('+') ? mobile : `+91${mobile}`;
-      
-      const response = await this.request('/auth/otp/resend/', {
-        method: 'POST',
+      const formattedMobile = mobile.startsWith("+") ? mobile : `+91${mobile}`;
+
+      const response = await this.request("/auth/otp/resend/", {
+        method: "POST",
         body: JSON.stringify({
           mobile_number: formattedMobile,
+          purpose,
         }),
       });
 
       return response;
     } catch (error) {
-      throw new Error(error.message || 'Failed to resend OTP');
+      throw new Error(error.message || "Failed to resend OTP");
     }
   }
 
@@ -249,11 +258,11 @@ class AuthService {
    */
   async logout() {
     try {
-      await this.request('/auth/logout/', {
-        method: 'POST',
+      await this.request("/auth/logout/", {
+        method: "POST",
       });
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     } finally {
       // Clear local storage
       storageService.clearAuth();
@@ -266,7 +275,7 @@ class AuthService {
    */
   async checkAuthStatus() {
     try {
-      const response = await this.request('/auth/status/');
+      const response = await this.request("/auth/status/");
       return response;
     } catch (error) {
       return { authenticated: false };
@@ -281,13 +290,13 @@ class AuthService {
     try {
       const refreshToken = storageService.getRefreshToken();
       if (!refreshToken) {
-        throw new Error('No refresh token available');
+        throw new Error("No refresh token available");
       }
 
       const response = await fetch(`${this.baseURL}/auth/token/refresh/`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           refresh: refreshToken,
@@ -297,7 +306,7 @@ class AuthService {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error('Token refresh failed');
+        throw new Error("Token refresh failed");
       }
 
       // Store new access token

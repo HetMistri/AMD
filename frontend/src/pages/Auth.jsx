@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LogIn, UserPlus, Phone, Lock, User, Eye, EyeOff, ArrowRight, ArrowLeft, MapPin } from 'lucide-react';
+import { LogIn, UserPlus, Phone, User, ArrowRight, ArrowLeft, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useTheme } from '../contexts/ThemeContext';
@@ -113,14 +113,15 @@ const Auth = ({ onAuthSuccess }) => {
     setLoading(true);
     
     try {
-      let response;
       if (isLogin) {
-        // Login flow
-        response = await authService.loginRequest(formData.mobile);
-        toast.success('OTP sent to your mobile via SMS!');
+        const response = await authService.loginRequest(formData.mobile);
+        toast.success('OTP generated! Please enter it below.');
+        setDisplayOtp(response?.otp ? String(response.otp) : '');
+        setStep('otp');
+        startTimer();
       } else {
         // Signup flow - send all required fields
-        response = await authService.signupRequest(
+        const response = await authService.signupRequest(
           formData.mobile,
           formData.firstName,
           formData.lastName,
@@ -128,15 +129,13 @@ const Auth = ({ onAuthSuccess }) => {
           formData.role
         );
         toast.success('OTP sent! Please verify to create your account.');
+        setDisplayOtp(response?.otp ? String(response.otp) : '');
+        setStep('otp');
+        startTimer();
       }
-
-      setDisplayOtp(response?.otp ? String(response.otp) : '');
-      
-      setStep('otp');
-      startTimer();
     } catch (error) {
       console.error('Error sending OTP:', error);
-      toast.error(error.message || 'Failed to send OTP. Please try again.');
+      toast.error(error.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -147,7 +146,7 @@ const Auth = ({ onAuthSuccess }) => {
     
     setLoading(true);
     try {
-      const response = await authService.resendOTP(formData.mobile);
+      const response = await authService.resendOTP(formData.mobile, isLogin ? 'login' : 'signup');
       setDisplayOtp(response?.otp ? String(response.otp) : '');
       toast.success('OTP resent successfully!');
       startTimer();
@@ -393,7 +392,7 @@ const Auth = ({ onAuthSuccess }) => {
                   />
                 </div>
                 <p className="mt-2 text-sm text-slate-500 dark:text-gray-400">
-                  We'll send you a one-time password (OTP)
+                  OTP will be generated and shown on screen
                 </p>
               </div>
 
@@ -426,7 +425,7 @@ const Auth = ({ onAuthSuccess }) => {
                   +91 {formData.mobile}
                 </p>
                 {displayOtp && (
-                  <p className="mt-2 text-sm font-semibold text-emerald-700">
+                  <p className="mt-2 text-base font-bold text-emerald-700">
                     OTP: {displayOtp}
                   </p>
                 )}
