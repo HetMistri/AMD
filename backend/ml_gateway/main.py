@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
+import os
 
 # Configure logging
 logging.basicConfig(
@@ -12,6 +13,10 @@ logger = logging.getLogger(__name__)
 
 # Import routers
 from .routers import forecast, anomaly, parser, efficiency
+
+
+def _csv_env(value: str) -> list[str]:
+    return [item.strip() for item in value.split(',') if item.strip()]
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -33,9 +38,16 @@ app = FastAPI(
 )
 
 # CORS Configuration
+cors_origins = _csv_env(
+    os.getenv(
+        "ML_CORS_ALLOWED_ORIGINS",
+        "http://localhost:8000,http://localhost:5173,http://localhost:3000"
+    )
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8000", "http://localhost:5173", "http://localhost:3000"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -69,4 +81,4 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001, log_level="info")
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "8001")), log_level="info")

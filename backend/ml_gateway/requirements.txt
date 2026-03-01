@@ -1,0 +1,15 @@
+# Gram Meter ML Gateway Dependencies
+# Render Build Command: pip install -r backend/ml_gateway/requirements.txt
+
+fastapi==0.127.0
+uvicorn==0.40.0
+pydantic==2.12.5
+
+numpy==2.4.0
+pandas==2.3.3
+scikit-learn==1.8.0
+scipy==1.16.3
+joblib==1.5.3
+
+python-dotenv==1.2.1
+requests==2.32.5
