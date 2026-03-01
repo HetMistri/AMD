@@ -1,0 +1,87 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: gram-meter-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    container_name: gram-meter-backend
+    working_dir: /workspace/backend
+    command: gunicorn gram_meter.asgi:application -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 --workers 4
+    env_file:
+      - backend/.env
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ML_GATEWAY_URL: http://ml-gateway:8001
+    depends_on:
+      redis:
+        condition: service_healthy
+    expose:
+      - "8000"
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  ml-gateway:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    container_name: gram-meter-ml-gateway
+    working_dir: /workspace/backend
+    command: uvicorn ml_gateway.main:app --host 0.0.0.0 --port 8001
+    env_file:
+      - backend/.env
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    expose:
+      - "8001"
+    ports:
+      - "8001:8001"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    container_name: gram-meter-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  admin-console:
+    build:
+      context: .
+      dockerfile: docker/admin-console.Dockerfile
+    container_name: gram-meter-admin-console
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  simulator:
+    build:
+      context: .
+      dockerfile: docker/simulator.Dockerfile
+    container_name: gram-meter-simulator
+    restart: unless-stopped
+
+volumes:
+  redis_data:
