@@ -32,7 +32,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-f1ubpj)!m-5g_x=so#1m^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = _csv_env(config('ALLOWED_HOSTS', default='localhost,127.0.0.1'))
+ALLOWED_HOSTS = _csv_env(config('ALLOWED_HOSTS', default='localhost,127.0.0.1,amd-4gq6.onrender.com'))
 
 if render_external_host := os.environ.get('RENDER_EXTERNAL_HOSTNAME'):
     if render_external_host not in ALLOWED_HOSTS:
@@ -284,14 +284,14 @@ AWS_REGION = config('AWS_REGION', default='ap-south-1')  # Mumbai region
 # ===== CORS CONFIGURATION =====
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:5173,http://localhost:3000'
+    default='https://amd-frontend-phi.vercel.app,https://amd-4gq6.onrender.com,http://localhost:5173,http://localhost:3000'
 )
 
 CORS_ALLOWED_ORIGINS = _csv_env(CORS_ALLOWED_ORIGINS)
 
 CSRF_TRUSTED_ORIGINS = _csv_env(config(
     'CSRF_TRUSTED_ORIGINS',
-    default='http://localhost:5173,http://localhost:3000'
+    default='https://amd-frontend-phi.vercel.app,https://amd-4gq6.onrender.com,http://localhost:5173,http://localhost:3000'
 ))
 
 CORS_ALLOW_CREDENTIALS = True

@@ -24,7 +24,7 @@ const speakText = async (text, lang = 'en-IN') => {
     const langCode = lang.split('-')[0];
     
     // Call backend TTS API - use correct API URL with v1
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://amd-4gq6.onrender.com/api/v1';
     const fullUrl = `${apiUrl}/tts/`;
     console.log('📡 TTS API URL:', fullUrl);
     
