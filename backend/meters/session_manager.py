@@ -31,6 +31,13 @@ class SessionManager:
     
     def __init__(self):
         """Initialize Redis connection"""
+        self._memory_sessions = {}
+
+        if not getattr(settings, 'USE_REDIS', False):
+            self.redis_client = None
+            logger.info("Session manager running in in-memory mode (USE_REDIS=False)")
+            return
+
         try:
             self.redis_client = redis.Redis(
                 host=settings.REDIS_HOST,
@@ -48,7 +55,6 @@ class SessionManager:
             logger.error(f"Failed to connect to Redis: {e}")
             # Fallback to in-memory dict (not recommended for production)
             self.redis_client = None
-            self._memory_sessions = {}
     
     def _get_session_key(self, session_id):
         """Generate Redis key for session"""

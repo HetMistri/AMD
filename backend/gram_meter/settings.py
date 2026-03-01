@@ -15,6 +15,10 @@ from decouple import config
 from datetime import timedelta
 import os
 
+
+def _csv_env(value: str) -> list[str]:
+    return [item.strip() for item in value.split(',') if item.strip()]
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -28,7 +32,11 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-f1ubpj)!m-5g_x=so#1m^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = _csv_env(config('ALLOWED_HOSTS', default='localhost,127.0.0.1'))
+
+if render_external_host := os.environ.get('RENDER_EXTERNAL_HOSTNAME'):
+    if render_external_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(render_external_host)
 
 
 # Application definition
@@ -92,15 +100,24 @@ ASGI_APPLICATION = 'gram_meter.asgi.application'
 # Custom User Model
 AUTH_USER_MODEL = 'meters.User'
 
+USE_REDIS = config('USE_REDIS', default=False, cast=bool)
+
 # Channels Configuration
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [(config('REDIS_HOST', default='localhost'), config('REDIS_PORT', default=6379, cast=int))],
+if USE_REDIS:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                "hosts": [(config('REDIS_HOST', default='localhost'), config('REDIS_PORT', default=6379, cast=int))],
+            },
         },
-    },
-}
+    }
+else:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        },
+    }
 
 
 # Database
@@ -268,7 +285,14 @@ AWS_REGION = config('AWS_REGION', default='ap-south-1')  # Mumbai region
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
     default='http://localhost:5173,http://localhost:3000'
-).split(',')
+)
+
+CORS_ALLOWED_ORIGINS = _csv_env(CORS_ALLOWED_ORIGINS)
+
+CSRF_TRUSTED_ORIGINS = _csv_env(config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='http://localhost:5173,http://localhost:3000'
+))
 
 CORS_ALLOW_CREDENTIALS = True
 
